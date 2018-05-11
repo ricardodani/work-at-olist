@@ -1,9 +1,8 @@
 from django.contrib import admin
-from django.urls import path
-import phonebill.urls
+from django.urls import path, include
 
 urlpatterns = [
-    path('api/', phonebill.urls),
+    path('api/', include('phonebill.urls')),
     path('admin/', admin.site.urls),
 ]
 
