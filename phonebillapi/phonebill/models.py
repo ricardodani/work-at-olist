@@ -3,23 +3,18 @@ from django.db import models
 from phonebill.price import CallPrice
 
 
-class CallRecord(models.Model):
-    timestamp = models.DateTimeField(null=False)
-    class Meta:
-        abstract = True
-
-
-class CallStart(CallRecord):
+class CallStart(models.Model):
     '''A call start record information.
     '''
+    timestamp = models.DateTimeField(null=False, verbose_name='Started at')
     source = models.CharField(max_length=9, null=False, db_index=True)
     destination = models.CharField(max_length=9, null=False)
 
 
-class CallEnd(CallRecord):
+class CallEnd(models.Model):
     '''A call ending record information.
     '''
-    pass
+    timestamp = models.DateTimeField(null=False, verbose_name='Ended at')
 
 
 class Call(models.Model):
@@ -27,12 +22,31 @@ class Call(models.Model):
     '''
 
     start_record = models.OneToOneField(
-        CallStart, on_delete=models.CASCADE, null=False
+        CallStart, on_delete=models.CASCADE, null=False, blank=False
     )
     end_record = models.OneToOneField(
-        CallEnd, on_delete=models.CASCADE, null=True
+        CallEnd, on_delete=models.CASCADE, null=True, blank=True
     )
-    price = models.DecimalField(null=True, decimal_places=2, max_digits=10)
+    price = models.DecimalField(
+        null=True, decimal_places=2, max_digits=10, blank=True
+    )
+
+    @property
+    def source(self):
+        return self.start_record.source
+
+    @property
+    def destination(self):
+        return self.start_record.destination
+
+    @property
+    def started_at(self):
+        return self.start_record.timestamp
+
+    @property
+    def ended_at(self):
+        if self.is_completed:
+            return self.end_record.timestamp
 
     @property
     def is_completed(self):
@@ -47,7 +61,7 @@ class Call(models.Model):
         completed.
         '''
         if self.is_completed:
-            return self.end_record.timestamp - self.start_record.timestamp
+            return self.ended_at - self.started_at
 
     def _set_price(self):
         '''Set's the call price if it's null and the call is completed.
@@ -62,3 +76,6 @@ class Call(models.Model):
     def save(self, *args, **kwargs):
         self._set_price()
         super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ['-end_record__timestamp', '-start_record__timestamp']
