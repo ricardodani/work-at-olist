@@ -54,7 +54,7 @@ class TestCallPrice(TestCase):
         expected = Decimal('0.36') + (30 * Decimal('0.09'))
         self.assertEqual(cp.calculate(), expected)
 
-    def test_calculate_mixed_long_call_end_day_after_in_standard(self):
+    def test_calculate_mixed_long_call_ending_day_after_as_standard(self):
         ds = datetime(2010, 1, 1, 21, 30, 0)
         de = datetime(2010, 1, 2, 6, 30, 0)
         cp = CallPrice(started_at=ds, ended_at=de)
@@ -63,7 +63,22 @@ class TestCallPrice(TestCase):
 
     def test_calculate_mixed_long_call_end_two_day_after(self):
         ds = datetime(2010, 1, 1, 21, 30, 0)
-        de = datetime(2010, 1, 2, 6, 30, 0)
+        de = datetime(2010, 1, 3, 6, 30, 0)
         cp = CallPrice(started_at=ds, ended_at=de)
-        expected = Decimal('0.36') + (2 * (30 * Decimal('0.09')))
+        expected = (
+            Decimal('0.36')  # call
+            + (60 * Decimal('0.09'))  # first and last day
+            + (16 * 60 * Decimal('0.09'))  # middle day
+        )
+        self.assertEqual(cp.calculate(), expected)
+
+    def test_calculate_mixed_long_call_end_two_year_after(self):
+        ds = datetime(2010, 1, 1, 21, 30, 0)
+        de = datetime(2012, 1, 2, 6, 30, 0)
+        cp = CallPrice(started_at=ds, ended_at=de)
+        expected = (
+            Decimal('0.36')  # call
+            + (60 * Decimal('0.09'))  # first and last day
+            + (2 * 365 * 16 * 60 * Decimal('0.09'))  # two years 
+        )
         self.assertEqual(cp.calculate(), expected)
