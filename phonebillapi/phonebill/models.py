@@ -1,6 +1,6 @@
 import datetime
 from django.db import models
-from phonebill.pricing import PricingRule
+from phonebill.price import CallPrice
 
 
 class CallRecordManager(models.Manager):
@@ -27,16 +27,14 @@ class CallEnd(CallRecord):
     pass
 
 
-class CallPrice:
-
-    STANDARD_TIME_RANGE = ()
-
 class Call(models.Model):
     '''A call representation.
     '''
 
     start_record = models.OneToOneField(CallStart, on_delete=models.CASCADE)
-    end_record = models.OneToOneField(CallEnd, on_delete=models.CASCADE)
+    end_record = models.OneToOneField(
+        CallEnd, on_delete=models.CASCADE, null=True
+    )
     total = models.DecimalField(null=True, decimal_places=2, max_digits=10)
 
     @property
@@ -51,11 +49,11 @@ class Call(models.Model):
     @property
     def price(self):
         if self.is_completed:
-            return CallPrice.calculate(
+            call_price = CallPrice(
                 started_at=self.start_record.timestamp,
-                started_at=self.start_record.timestamp,
-                started_at=self.start_record.timestamp,
+                ended_at=self.end_record.timestamp
             )
+            return call_price.calculate()
 
     def _set_total(self):
         '''Set the calculated total price of a the call if possible.

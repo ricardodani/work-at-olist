@@ -1,54 +1,44 @@
-from datetime import datetime
-from phonebill.utils import in_range
+from datetime import datetime, time
+from decimal import Decimal
 
 
-class CallPrice:
+class CallPrice(object):
     '''Class to calculate call prices based on tariff ranges.
     '''
 
-    STANDARD = 'Standard'
-    REDUCED = 'Reduced'
-    _START_STANDARD_TIME = datetime.time(hour=6)
-    _START_REDUCED_TIME = datetime.time(hour=22)
-    _CONN_PRICE_STANDARD = Decimal('0.36')
-    _CONN_PRICE_REDUCED = CONN_PRICE_STANDARD
-    _MIN_PRICE_STANDARD = Decimal('0.09')
-    _MIN_PRICE_REDUCED = None
-    TARIFFS = {
-        STANDARD: {
-            'range': (_START_TIME_STANDARD, _START_REDUCED_TIME),
-            'conn_price': _CONN_PRICE_STANDARD,
-            'min_price': _MIN_PRICE_STANDARD,
-        },
-        REDUCED: {
-            'range': (_START_TIME_REDUCED, _START_STANDARD_TIME_,
-            'conn_price': _CONN_PRICE_REDUCED,
-            'min_price': _MIN_PRICE_REDUCED,
-        }
-    }
+    START_REDUCED_TIME = time(hour=22)
+    END_REDUCED_TIME = time(hour=6)
+    CONN_PRICE = Decimal('0.36')
+    MIN_PRICE = Decimal('0.09')
 
     def __init__(self, started_at, ended_at):
+        invalid_types = not (
+            isinstance(started_at, datetime) and isinstance(ended_at, datetime)
+        )
+        if invalid_types:
+            raise TypeError
+        start_is_in_future = started_at > ended_at
+        if start_is_in_future:
+            raise ValueError
         self.started_at, self.ended_at = started_at, ended_at
 
-    def get_tariff(self, time):
-        return self.TARIFFS[self.STANDARD] if in_range(
-            self.TARIFFS[self.STANDARD]['range'], time
-        ) else self.TARIFFS[self.REDUCED]
-
-    def calculate(self, starting_at=None):
-        starting_at = self.started_at if not starting_at else starting_at
-        tariff = self.get_tariff(starting_at)
-        subtotal = tariff['conn_price']
-        _, end = tariff['range']
-        if tariff['min_price']:
-            delta_mins = (end - starting_at).total_minutes()
-            subtotal += delta_mins * tariff['min_price']
-        subtotal += self.calculate(starting_at=end)
+    def calculate(self):
+        subtotal = Decimal('0.00')
+        if self.started_at == self.ended_at:
+            return subtotal
+        subtotal += self.CONN_PRICE
+        start_reduced = self.started_at.replace(
+            hour=self.START_REDUCED_TIME.hour,
+            minute=self.START_REDUCED_TIME.minute
+        )
+        end_reduced = self.started_at.replace(
+            hour=self.END_REDUCED_TIME.hour,
+            minute=self.END_REDUCED_TIME.minute
+        )
+        if self.started_at < self.ended_at < start_reduced:
+            mins = int((self.ended_at - self.started_at).total_seconds() // 60)
+            subtotal += self.MIN_PRICE * mins
+        elif self.started_at < start_reduced < self.ended_at:
+            mins = int((start_reduced - self.started_at).total_seconds() // 60)
+            subtotal += self.MIN_PRICE * mins
         return subtotal
-
-
-
-'''
-# get date ranges
->>> split_period(date_1, date_2)
-[FirstDay(reduced_mins=X, standard_minutes=Y), MiddleDays(reduced_mins=), ]
