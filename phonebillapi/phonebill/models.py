@@ -3,13 +3,8 @@ from django.db import models
 from phonebill.price import CallPrice
 
 
-class CallRecordManager(models.Manager):
-    pass
-
-
 class CallRecord(models.Model):
     timestamp = models.DateTimeField(null=False)
-    objects = CallRecordManager()
     class Meta:
         abstract = True
 
@@ -31,37 +26,39 @@ class Call(models.Model):
     '''A call representation.
     '''
 
-    start_record = models.OneToOneField(CallStart, on_delete=models.CASCADE)
+    start_record = models.OneToOneField(
+        CallStart, on_delete=models.CASCADE, null=False
+    )
     end_record = models.OneToOneField(
         CallEnd, on_delete=models.CASCADE, null=True
     )
-    total = models.DecimalField(null=True, decimal_places=2, max_digits=10)
+    price = models.DecimalField(null=True, decimal_places=2, max_digits=10)
 
     @property
     def is_completed(self):
-        return bool(self.start_record) and bool(self.end_record)
+        '''Return if the `Call` instance is complete, in other words, has
+        start and end records.
+        '''
+        return all([self.start_record, self.end_record])
 
     @property
     def duration(self):
+        '''Return the timedelta between end and start records if the call is
+        completed.
+        '''
         if self.is_completed:
             return self.end_record.timestamp - self.start_record.timestamp
 
-    @property
-    def price(self):
-        if self.is_completed:
+    def _set_price(self):
+        '''Set's the call price if it's null and the call is completed.
+        '''
+        if self.is_completed and not self.price:
             call_price = CallPrice(
                 started_at=self.start_record.timestamp,
                 ended_at=self.end_record.timestamp
             )
-            return call_price.calculate()
-
-    def _set_total(self):
-        '''Set the calculated total price of a the call if possible.
-        '''
-        should_calculate_total = not self.total and not self.is_completed
-        if should_calculate_total:
-            self.total = self.pricing.calculate(self)
+            self.price = call_price.calculate()
 
     def save(self, *args, **kwargs):
-        self._set_total()
+        self._set_price()
         super().save(*args, **kwargs)

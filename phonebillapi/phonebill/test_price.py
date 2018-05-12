@@ -1,6 +1,6 @@
-from datetime import datetime
 from decimal import Decimal
 from django.test import TestCase
+from django.utils.timezone import datetime
 from phonebill.price import CallPrice
 
 
@@ -79,6 +79,6 @@ class TestCallPrice(TestCase):
         expected = (
             Decimal('0.36')  # call
             + (60 * Decimal('0.09'))  # first and last day
-            + (2 * 365 * 16 * 60 * Decimal('0.09'))  # two years 
+            + (2 * 365 * 16 * 60 * Decimal('0.09'))  # two years
         )
         self.assertEqual(cp.calculate(), expected)
