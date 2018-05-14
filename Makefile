@@ -10,3 +10,5 @@ migrate: _db
 run: build migrate
 	@docker-compose up
 
+test:
+	@docker-compose run web python manage.py test
