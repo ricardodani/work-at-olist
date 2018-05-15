@@ -1,20 +1,25 @@
 import datetime
 from django.db import models
 from phonebill.price import CallPrice
+from phonebill.managers import CallManager
 
 
 class CallStart(models.Model):
     '''A call start record information.
     '''
-    timestamp = models.DateTimeField(null=False, verbose_name='Started at')
-    source = models.CharField(max_length=9, null=False, db_index=True)
-    destination = models.CharField(max_length=9, null=False)
+    timestamp = models.DateTimeField(
+        null=False, verbose_name='Started at', auto_now_add=True
+    )
+    source = models.CharField(max_length=11, null=False, db_index=True)
+    destination = models.CharField(max_length=11, null=False)
 
 
 class CallEnd(models.Model):
     '''A call ending record information.
     '''
-    timestamp = models.DateTimeField(null=False, verbose_name='Ended at')
+    timestamp = models.DateTimeField(
+        null=False, verbose_name='Ended at', auto_now_add=True
+    )
 
 
 class Call(models.Model):
@@ -30,6 +35,7 @@ class Call(models.Model):
     price = models.DecimalField(
         null=True, decimal_places=2, max_digits=10, blank=True
     )
+    objects = CallManager()
 
     @property
     def source(self):
