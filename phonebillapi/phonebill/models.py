@@ -12,6 +12,7 @@ class CallStart(models.Model):
     )
     source = models.CharField(max_length=11, null=False, db_index=True)
     destination = models.CharField(max_length=11, null=False)
+
     objects = CallStartManager()
 
 

@@ -7,6 +7,9 @@ _db:
 migrate: _db
 	@docker-compose run web python manage.py migrate
 
+superuser: _db
+	@docker-compose run web python manage.py createsuperuser
+
 run: migrate
 	@docker-compose up
 

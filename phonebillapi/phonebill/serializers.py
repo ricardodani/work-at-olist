@@ -22,44 +22,33 @@ class CallStartSerializer(ModelSerializer):
         fields = ['source', 'destination', 'call_id', 'type', 'timestamp']
         read_only_fields = ['call_id', 'type', 'timestamp']
 
-    def validate_type(self, value):
-        if value not in ["start", "end"]:
-            raise ValidationError(
-                'Type must be `start` or `end`.'
-            )
-        return value
-
-    def validate_call_id(self, value):
-        if Call.objects.exists(value):
-            raise ValidationError('Call already exists.')
-        return value
-
     def save(self, *args, **kwargs):
-        return CallStart.objects.create(
-            call_id=self.validated_data['call_id'],
-            source=self.validated_data['source'],
-            destination=self.validated_data['destination'],
-        )
+        try:
+            return CallStart.objects.create(
+                call_id=self.validated_data['call_id'],
+                source=self.validated_data['source'],
+                destination=self.validated_data['destination'],
+            )
+        except Exception as e:
+            raise ValidationError(e)
+
 
 class CallEndSerializer(ModelSerializer):
     call_id = IntegerField(required=True)
     type = CharField(required=True)
+
     class Meta:
         model = CallEnd
         fields = ['call_id', 'timestamp', 'type']
         read_only_fields = ['call_id']
 
-    def validate_call_id(self, value):
-        if not Call.objects.not_completed(value):
-            raise ValidationError('Theres no call to end.')
-        return value
-
     def save(self, *args, **kwargs):
-        end = CallEnd.objects.create()
-        Call.objects.filter(
-            id=self.validated_data['call_id']
-        ).update(end_record=end)
-        return end
+        try:
+            return CallEnd.objects.create(
+                call_id=self.validated_data['call_id']
+            )
+        except Exception as e:
+            raise ValidationError(e)
 
 
 class CallSerializer(ModelSerializer):
