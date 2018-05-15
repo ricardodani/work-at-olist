@@ -23,7 +23,6 @@ class CallRecordCreateView(CreateAPIView):
             return self.serializers[self.default_serializer]
 
 
-
 class BillRetrieveView(GenericAPIView):
 
     http_method_names = ['get']

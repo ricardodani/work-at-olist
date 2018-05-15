@@ -16,12 +16,19 @@ class CallStartSerializer(ModelSerializer):
     source = RegexField(PHONE_REGEX)
     destination = RegexField(PHONE_REGEX)
     call_id = IntegerField(required=True)
-    type = CharField(default='start')
+    type = CharField(required=True)
 
     class Meta:
         model = CallStart
         fields = ['source', 'destination', 'call_id', 'type', 'timestamp']
         read_only_fields = ['call_id', 'type', 'timestamp']
+
+    def validate_type(self, value):
+        if value not in ["start", "end"]:
+            raise ValidationError(
+                'Type must be `start` or `end`.'
+            )
+        return value
 
     def validate_call_id(self, value):
         if Call.objects.exists(value):
@@ -29,16 +36,11 @@ class CallStartSerializer(ModelSerializer):
         return value
 
     def save(self, *args, **kwargs):
-        start = CallStart.objects.create(
+        return CallStart.objects.create(
+            call_id=self.validated_data['call_id'],
             source=self.validated_data['source'],
             destination=self.validated_data['destination'],
         )
-        self.call = Call.objects.create(
-            id=self.validated_data['call_id'], start_record=start
-        )
-        start.refresh_from_db()
-        return start
-
 
 class CallEndSerializer(ModelSerializer):
     call_id = IntegerField(required=True)
@@ -55,7 +57,9 @@ class CallEndSerializer(ModelSerializer):
 
     def save(self, *args, **kwargs):
         end = CallEnd.objects.create()
-        Call.objects.update(end_record=end)
+        Call.objects.filter(
+            id=self.validated_data['call_id']
+        ).update(end_record=end)
         return end
 
 

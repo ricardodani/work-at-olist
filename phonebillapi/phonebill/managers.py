@@ -1,6 +1,23 @@
 from django.db.models import Manager
 
 
+class CallStartManager(Manager):
+    def create(self, call_id, source, destination):
+        from phonebill.models import Call
+        instance = super().create(
+            source=source,
+            destination=destination,
+        )
+        Call.objects.create(
+            id=call_id, start_record=instance
+        )
+        return instance
+
+
+class CallEndManager(Manager):
+    pass
+
+
 class CallManager(Manager):
 
     def _get_period_lookup(self, period):
