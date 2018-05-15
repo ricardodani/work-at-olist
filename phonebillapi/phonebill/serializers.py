@@ -8,7 +8,6 @@ from rest_framework.fields import (
 from phonebill.models import Call, CallEnd, CallStart
 
 
-PERIOD_FORMAT = getattr(settings, "PERIOD_FORMAT", "%Y-%m")
 PHONE_REGEX = getattr(settings, "PHONE_REGEX", r'([0-9]){10,11}')
 
 
@@ -44,7 +43,7 @@ class CallStartSerializer(ModelSerializer):
 
 class CallEndSerializer(ModelSerializer):
     call_id = IntegerField(required=True)
-    type = CharField(default='end')
+    type = CharField(required=True)
     class Meta:
         model = CallEnd
         fields = ['call_id', 'timestamp', 'type']
