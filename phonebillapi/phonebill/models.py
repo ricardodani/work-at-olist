@@ -87,7 +87,7 @@ class Call(models.Model):
         super().save(*args, **kwargs)
 
     class Meta:
-        ordering = ['-end_record__timestamp', '-start_record__timestamp']
+        ordering = ['end_record__timestamp', 'start_record__timestamp']
         indexes = [
             models.Index(
                 fields=['start_record', 'end_record']
