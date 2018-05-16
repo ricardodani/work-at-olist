@@ -84,6 +84,7 @@ class BillRetrieveView(GenericAPIView):
         '''
         Return a `date` of the period or a `date` of today`s month if period is
         is None.
+        Raises exception if period is invalid.
         '''
         if period:
             try:
