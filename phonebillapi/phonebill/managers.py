@@ -92,7 +92,7 @@ class CallManager(Manager):
             price__isnull=False,
             start_record__source=source,
             **self._get_period_lookup(period)
-        )
+        ).order_by('-end_record__timestamp')
 
     def exists(self, call_id):
         '''
