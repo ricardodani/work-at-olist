@@ -88,3 +88,8 @@ class Call(models.Model):
 
     class Meta:
         ordering = ['-end_record__timestamp', '-start_record__timestamp']
+        indexes = [
+            models.Index(
+                fields=['start_record', 'end_record']
+            ),
+        ]

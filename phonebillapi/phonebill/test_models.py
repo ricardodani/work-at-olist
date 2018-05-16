@@ -1,4 +1,4 @@
-import pytz
+from dateutil import tz
 from unittest.mock import patch, Mock
 from decimal import Decimal
 from django.utils.timezone import datetime, timedelta
@@ -10,10 +10,10 @@ class TestCall(TestCase):
 
     def setUp(self):
         self.call_start = CallStart.objects.create(
-            timestamp=datetime(2000, 1, 1, 1, 1, 1, tzinfo=pytz.UTC)
+            timestamp=datetime(2000, 1, 1, 1, 1, 1, tzinfo=tz.UTC)
         )
         self.call_end = CallEnd.objects.create(
-            timestamp=datetime(2000, 1, 2, 1, 1, 1, tzinfo=pytz.UTC)
+            timestamp=datetime(2000, 1, 2, 1, 1, 1, tzinfo=tz.UTC)
         )
         self.call = Call.objects.create(start_record=self.call_start)
 

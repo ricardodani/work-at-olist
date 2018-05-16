@@ -1,5 +1,7 @@
+from dateutil.relativedelta import relativedelta
 from django.db.models import Manager
 from django.db import transaction
+from phonebill import exceptions
 
 
 class CallStartManager(Manager):
@@ -17,16 +19,22 @@ class CallStartManager(Manager):
         :returns: `CallStart` instance
         '''
         from phonebill.models import Call
+
         if Call.objects.exists(call_id):
-            raise Exception('Invalid call id.')
-        instance = super().create(
-            source=source,
-            destination=destination,
-        )
-        Call.objects.create(
-            id=call_id, start_record=instance
-        )
-        return instance
+            raise exceptions.CallExistsError
+
+        try:
+            instance = super().create(
+                source=source,
+                destination=destination,
+            )
+            Call.objects.create(
+                id=call_id, start_record=instance
+            )
+            return instance
+
+        except:
+            raise exceptions.CallStartCreateError
 
 
 class CallEndManager(Manager):
@@ -43,43 +51,47 @@ class CallEndManager(Manager):
         :returns: `CallEnd` instance
         '''
         from phonebill.models import Call
+
         try:
             not_completed_call = Call.objects.not_completed(call_id).get()
+        except Call.DoesNotExists:
+            raise exceptions.NoCallToEndError
+
+        try:
+            instance = super().create()
+            not_completed_call.end_record = instance
+            not_completed_call.save(update_fields=['end_record', 'price'])
+            return instance
         except:
-            raise Exception('There`s no call to end')
-        instance = super().create()
-        not_completed_call.end_record = instance
-        not_completed_call.save(update_fields=['end_record', 'price'])
-        return instance
+            raise exceptions.CallEndCreateError
 
 
 class CallManager(Manager):
 
     def _get_period_lookup(self, period):
-        period_dt = None
-        one_month = None  # TODO: use relativedelta package from dateutil
         return {
-            'end_record__timestamp__lt': period_dt + one_month,
-            'end_record__timestamp__gte': period_dt,
-        } if period_dt else {}
+            'end_record__timestamp__lt': period + relativedelta(months=1),
+            'end_record__timestamp__gte': period,
+        }
 
-    def get_bill(self, source, period=None):
+    def get_bill(self, source, period):
         '''
         Return a telephone bill of the given `source` at `period`.
         That is, a `Call` queryset with a `total` aggregated field.
 
         :param source: Source telephone number (subscriber)
-        :param period: Year and month of the period (YYYY-MM format)
+        :param period: a validated `date` object
 
-        :returns: `CallEnd` instance
+        :returns: A `Call` queryset
         '''
 
         queryset = self.get_queryset()
 
-        # TODO: annotate total bill price
         return queryset.filter(
+            end_record__isnull=False,
+            price__isnull=False,
             start_record__source=source,
-            **self.get_period_lookup(period)
+            **self._get_period_lookup(period)
         )
 
     def exists(self, call_id):
@@ -94,11 +106,10 @@ class CallManager(Manager):
 
     def not_completed(self, call_id):
         '''
-        Returns a `Call` queryset filtering not completed calls for the
-        given id.
+        Filter's for a not completed call.
 
         :param call_id: Id of the `Call`
-        :returns: A `Call` queryset
+        :returns: A `Call` queryset.
         '''
         return self.get_queryset().filter(
             id=call_id, end_record__isnull=True
