@@ -70,7 +70,11 @@ class Call(models.Model):
         completed.
         '''
         if self.is_completed:
-            return self.ended_at - self.started_at
+            total_seconds = (self.ended_at - self.started_at).total_seconds()
+            hours = int(total_seconds // 60 // 60)
+            minutes = int(total_seconds // 60)
+            seconds = int(total_seconds % 60)
+            return '{}h{}m{}s'.format(hours, minutes, seconds)
 
     def _set_price(self):
         '''Set's the call price if it's null and the call is completed.
