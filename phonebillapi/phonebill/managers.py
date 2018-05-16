@@ -95,7 +95,7 @@ class CallManager(Manager):
         ).select_related(
             'start_record', 'end_record'
         ).order_by(
-            '-end_record__timestamp'
+            'end_record__timestamp'
         )
 
     def exists(self, call_id):
