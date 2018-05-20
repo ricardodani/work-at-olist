@@ -6,4 +6,4 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 ]
 
-admin.site.site_title = admin.site.site_header = 'Phone Bill Admin'
+admin.site.site_title = admin.site.site_header = 'Phonebill Admin'
