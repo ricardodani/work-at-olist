@@ -44,18 +44,19 @@ class NotCompletedCall(Call):
     objects = NotCompletedManager()
 
     def _set_price(self):
-        '''Set's the call price if is completed.
+        '''Set's the call price when completed.
         '''
-        if self.is_completed:
-            call_price = CallPrice(
-                started_at=self.started_at,
-                ended_at=self.ended_at
-            )
-            self.price = call_price.calculate()
+        assert self.is_completed, "Call must be completed to set price."
+        call_price = CallPrice(
+            started_at=self.started_at,
+            ended_at=self.ended_at
+        )
+        self.price = call_price.calculate()
 
-    def save(self, *args, **kwargs):
+    def complete_call(self, ended_at):
+        self.ended_at = ended_at
         self._set_price()
-        super().save(*args, **kwargs)
+        self.save(update_fields=['ended_at', 'price', 'updated_at'])
 
     class Meta:
         proxy = True
@@ -94,7 +95,7 @@ class CompletedCall(Call):
 
     @property
     def duration(self):
-        '''Return duration of a call in a human readable format.
+        '''Return duration of a call in a human format.
         '''
         total_seconds = (self.ended_at - self.started_at).total_seconds()
         hours = int(total_seconds // 60 // 60)
