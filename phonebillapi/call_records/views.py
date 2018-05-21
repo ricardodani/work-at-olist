@@ -7,10 +7,10 @@ from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework import status
 from call_records.serializers import (
-    CallStartCreateSerializer, CallEndCreateSerializer, CallStartSerializer,
-    CallEndSerializer, BillSerializer, BillInputSerializer, CallSerializer
+    CallStartSerializer, CallEndSerializer,CallSerializer, BillInputSerializer,
+    BillSerializer
 )
-from call_records.models import Call
+from call_records.models import CompletedCall
 from call_records import exceptions
 
 
@@ -55,7 +55,7 @@ class CallRecordView(GenericAPIView):
 
         call_serializer = CallSerializer(call)
         return Response(
-            retrieve_serializer.data, status=status.HTTP_201_CREATED
+            call_serializer.data, status=status.HTTP_201_CREATED
         )
 
 
@@ -93,8 +93,8 @@ class BillRetrieveView(GenericAPIView):
 
         source = serializer.data.get('source')
         try:
-            period = self.get_period(serializer.data.get('period'))
-            bill_queryset = Call.objects.get_bill(source, period)
+            period = self.get_period(serializer.data.get('period')) # TODO: make serializer return validated period already as a date
+            bill_queryset = CompletedCall.objects.get_bill(source, period)
         except APIException as e:
             return Response(
                 dict(detail=e.default_detail), status=e.status_code
