@@ -39,7 +39,10 @@ class NotCompletedCallManager(models.Manager):
             raise exceptions.NoCallToEndError
 
         call.ended_at = ended_at
-        call._set_price()
+        try:
+            call.set_price()
+        except:
+            raise exceptions.CalculatePriceError
 
         try:
             call.save(update_fields=['ended_at', 'price', 'updated_at'])
@@ -68,6 +71,10 @@ class CompletedCallManager(models.Manager):
         return self.get_queryset().filter(**period_lookup)
 
     def get_bill_queryset(self, source, period):
+        '''
+        Returns a bill queryset, in other words, completed calls from a source
+        filtered by a period.
+        '''
         return (
             self._filter_period(period).filter(source=source)
             .order_by('-ended_at')

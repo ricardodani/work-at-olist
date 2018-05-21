@@ -1,77 +1,127 @@
-from rest_framework.serializers import (
-    Serializer, ModelSerializer
+from datetime import datetime, date
+from collections import namedtuple
+from django.shortcuts import render
+from django.urls import reverse
+from rest_framework.generics import GenericAPIView
+from rest_framework.response import Response
+from rest_framework.exceptions import APIException
+from rest_framework import status
+from call_records.serializers import (
+    CallStartCreateSerializer, CallEndCreateSerializer, CallStartSerializer,
+    CallEndSerializer, BillSerializer, BillInputSerializer, CallSerializer
 )
-from rest_framework.fields import (
-    CharField, DecimalField, RegexField, IntegerField,
-    ValidationError, DateTimeField
-)
-from call_records.models import Call, NotCompletedCall
-from call_records.exceptions import CallCreationError
+from call_records.models import Call
+from call_records import exceptions
 
 
-PHONE_REGEX = r'^([0-9]){10,11}$'
-PERIOD_REGEX = r'^([0-9]){4}-([0-9]){2}$'
-
-
-class CallStartCreateSerializer(Serializer):
+class CallRecordView(GenericAPIView):
     '''
-    Serializes, validate and save a call start record.
+    Post a call record API endpoint. Accept's start and end records types.
     '''
 
-    source = RegexField(PHONE_REGEX)
-    destination = RegexField(PHONE_REGEX)
-    call_id = IntegerField(required=True)
-    timestamp = DateTimeField(required=True)
+    http_method_names = ['post']
+    serializers = {
+        'start': CallStartSerializer,
+        'end': CallEndSerializer,
+    }
+    default_serializer = 'start'
 
-    def save(self):
-        return Call.objects.create(**self.data)
+    def get_serializer_class(self):
+        _type = self.request.data.get('type')
+        return (
+            self.serializers[_type] if _type in self.serializers.keys()
+            else self.default_serializer
+        )
 
+    def post(self, request, format=None):
+        '''
+        Handle a post request to register a phone call, act`s as a serializer
+        router depending on `type` attribute.
+        '''
+        serializer = self.get_serializer_class()(data=request.data)
 
-class CallEndCreateSerializer(Serializer):
-    '''
-    Serializes, validate and save a call end record.
-    '''
+        if not serializer.is_valid():
+            return Response(
+                dict(errors=serializer.errors),
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-    call_id = IntegerField(required=True)
-    timestamp = DateTimeField(required=True)
-
-    def validate_call_id(self, value):
         try:
-            self.call = NotCompletedCall.objects.get(call_id=value)
-            return value
-        except NotCompletedCall.DoesNotExists:
-            raise ValidationError('There is no call to end.')
+            call = serializer.save()
+        except APIException as err:
+            return Response(
+                dict(detail=err.default), status=err.status_code
+            )
 
-    def save(self):
-        return NotCompletedCall.objects.complete(
-            call_id, ended_atself.data['timestamp']
+        call_serializer = CallSerializer(call)
+        return Response(
+            retrieve_serializer.data, status=status.HTTP_201_CREATED
         )
 
 
-class BillInputSerializer(Serializer):
+class BillRetrieveView(GenericAPIView):
     '''
-    Serializes, validate a bill request.
+    Get a bill API endpoint. Requires `source` and `period` GET parameters.
+    If `period` is not given, then the actual period is used.
     '''
-    source = RegexField(PHONE_REGEX)
-    period = RegexField(PERIOD_REGEX, required=False)
+
+    http_method_names = ['get']
+    serializer_class = BillInputSerializer
+
+    @staticmethod
+    def get_period(period):
+        '''
+        Return a `date` of the period or a `date` of today`s month if period is
+        is None.
+        Raises exception if period is invalid.
+        '''
+        if period:
+            try:
+                return datetime.strptime(period, '%Y-%m').date()
+            except:
+                raise exceptions.InvalidPeriodDateError
+        return date.today().replace(day=1)
+
+    def get(self, request):
+        serializer = BillInputSerializer(data=self.request.GET)
+
+        if not serializer.is_valid():
+            return Response(
+                dict(errors=serializer.errors),
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        source = serializer.data.get('source')
+        try:
+            period = self.get_period(serializer.data.get('period'))
+            bill_queryset = Call.objects.get_bill(source, period)
+        except APIException as e:
+            return Response(
+                dict(detail=e.default_detail), status=e.status_code
+            )
+
+        result_serializer = BillSerializer(dict(
+            calls=bill_queryset,
+            total=sum(
+                call.price for call in bill_queryset if call.price
+            ),
+            period=period.strftime('%Y-%m'),
+            source=source
+        ))
+        return Response(result_serializer.data)
 
 
-class CallSerializer(ModelSerializer):
+def index(request):
     '''
-    Serialize a `Call`.
+    Show`s project sitemap.
     '''
-    class Meta:
-        model = Call
-        fields = [
-            'destination', 'started_at', 'ended_at', 'duration', 'price'
-        ]
 
-
-class BillSerializer(Serializer):
-    '''
-    Serializes a bill queryset (`Call`s).
-    '''
-    source = RegexField(PHONE_REGEX)
-    period = CharField(required=True)
-    total = DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    calls = CallSerializer(many=True, read_only=True)
+    Link = namedtuple('Link', ['url', 'name', 'staff_only'])
+    return render(request, 'index.html', {
+        'links': (
+            Link(reverse('admin:index'), 'Admin', True),
+            Link("/docs", 'Documentation', False),
+            Link(reverse('get-bill'), 'Get a Bill API', False),
+            Link(reverse('add-record'), 'Post a Call Record API', False),
+        )
+    })

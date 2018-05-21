@@ -37,7 +37,7 @@ class NotCompletedCall(Call):
     '''
     objects = NotCompletedCallManager()
 
-    def _set_price(self):
+    def set_price(self):
         '''Set's the call price when completed.
         '''
         call_price = CallPrice(
