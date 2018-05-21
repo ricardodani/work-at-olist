@@ -6,6 +6,7 @@ from rest_framework.fields import (
     ValidationError, DateTimeField
 )
 from call_records.models import Call, NotCompletedCall
+from call_records.exceptions import CallCreationError
 
 
 PHONE_REGEX = r'^([0-9]){10,11}$'
@@ -22,18 +23,8 @@ class CallStartCreateSerializer(Serializer):
     call_id = IntegerField(required=True)
     timestamp = DateTimeField(required=True)
 
-    def validate_call_id(self, value):
-        if Call.objects.get(call_id=value).exists():
-            raise ValidationError('Call already exists.')
-        return value
-
     def save(self):
-        return Call.objects.create(
-            call_id=self.data['call_id'],
-            source=self.data['source'],
-            destination=self.data['destination'],
-            started_at=self.data['timestamp']
-        )
+        return Call.objects.create(**self.data)
 
 
 class CallEndCreateSerializer(Serializer):
@@ -52,8 +43,9 @@ class CallEndCreateSerializer(Serializer):
             raise ValidationError('There is no call to end.')
 
     def save(self):
-        self.call.complete_call(self.data['timestamp'])
-        return self.call
+        return NotCompletedCall.objects.complete(
+            call_id, ended_atself.data['timestamp']
+        )
 
 
 class BillInputSerializer(Serializer):
