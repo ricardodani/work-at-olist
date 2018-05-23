@@ -12,6 +12,23 @@ class CallCompletionError(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-class InvalidPeriodDateError(APIException):
-    default_detail = 'Invalid period date.'
+class NoCallToEndError(APIException):
+    default_detail = 'There is no call to end'
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+class CallExistsError(APIException):
+    default_detail = 'The call already exists'
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+class CalculatePriceError(APIException):
+    default_detail = 'Calculation of the price call failed.'
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+class InvalidRecordTypeRequestError(APIException):
+    default_detail = (
+        'Invalid of the call record request, should be `start` or `end`.',
+    )
     status_code = status.HTTP_400_BAD_REQUEST

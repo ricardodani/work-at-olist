@@ -1,3 +1,9 @@
 from django.contrib import admin
+from bills.models import Bill
 
-# Register your models here.
+
+class BillAdmin(admin.ModelAdmin):
+    pass
+
+
+admin.site.register(Bill, BillAdmin)

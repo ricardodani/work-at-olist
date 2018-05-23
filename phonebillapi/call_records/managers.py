@@ -1,4 +1,5 @@
 from dateutil.relativedelta import relativedelta
+from django.db import models
 from call_records import exceptions
 
 
@@ -8,7 +9,7 @@ class CallManager(models.Manager):
         '''
         Create a call if does not exists.
         '''
-        if self.get_queryset().get(call_id=call_id).exists():
+        if self.get_queryset().filter(call_id=call_id).exists():
             raise exceptions.CallExistsError
 
         try:

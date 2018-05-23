@@ -1,9 +1,8 @@
-from django.urls import re_path
+from django.urls import path
 from bills.views import BillRetrieveView
 
 
+app_name = 'bills'
 urlpatterns = [
-    re_path(r'^(?P<source>[0-9]{10,11})/',
-            BillRetrieveView.as_view(),
-            name="get-bill"),
+    path(r'get/', BillRetrieveView.as_view(), name="get-bill"),
 ]

@@ -1,5 +1,7 @@
 from collections import namedtuple
 from django.shortcuts import render
+from django.urls import reverse
+
 
 def index(request):
     '''
@@ -11,7 +13,7 @@ def index(request):
         'links': (
             Link(reverse('admin:index'), 'Admin', True),
             Link("/docs", 'Documentation', False),
-            Link(reverse('get-bill'), 'Get a Bill API', False),
-            Link(reverse('add-record'), 'Post a Call Record API', False),
+            Link(reverse('bills:get-bill'), 'Get a Bill API', False),
+            Link(reverse('call_records:post-record'), 'Post a Call Record API', False),
         )
     })

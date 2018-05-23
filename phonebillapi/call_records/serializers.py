@@ -1,77 +1,81 @@
-from rest_framework.serializers import (
-    Serializer, ModelSerializer
-)
+from rest_framework.serializers import Serializer, ModelSerializer
 from rest_framework.fields import (
-    CharField, DecimalField, RegexField, IntegerField, DateTimeField
+    RegexField, IntegerField, DateTimeField, ChoiceField
 )
 from call_records.models import Call, NotCompletedCall, CompletedCall
+from call_records import exceptions
 
 
 PHONE_REGEX = r'^([0-9]){10,11}$'
-PERIOD_REGEX = r'^([0-9]){4}-([0-9]){2}$'
+START, END = 'start', 'end'
+RECORD_TYPE_CHOICES = (START, END)
 
 
-class CallStartSerializer(Serializer):
+class NotCompletedCallSerializer(ModelSerializer):
     '''
-    Serializes, validate and save a call start record.
-    '''
-
-    source = RegexField(PHONE_REGEX)
-    destination = RegexField(PHONE_REGEX)
-    call_id = IntegerField(required=True)
-    timestamp = DateTimeField(required=True)
-
-    def save(self):
-        return Call.objects.create(**self.data)
-
-
-class CallEndSerializer(Serializer):
-    '''
-    Serializes, validate and save a call end record.
-    '''
-
-    call_id = IntegerField(required=True)
-    timestamp = DateTimeField(required=True)
-
-    def save(self):
-        return NotCompletedCall.objects.complete(**self.data)
-
-
-class CallSerializer(ModelSerializer):
-    '''
-    Serializes a call post record.
+    Serialize a not completed `Call`.
     '''
     class Meta:
-        model = Call
+        model = NotCompletedCall
         fields = [
-            'call_id', 'started_at', 'ended_at', 'source', 'destination'
+            'call_id', 'source', 'destination', 'started_at',
         ]
 
 
-class BillInputSerializer(Serializer):
+class CompletedCallSerializer(ModelSerializer):
     '''
-    Serializes, validate a bill request.
-    '''
-    source = RegexField(PHONE_REGEX)
-    period = RegexField(PERIOD_REGEX, required=False)
-
-
-class BillCallSerializer(ModelSerializer):
-    '''
-    Serialize a completed `Call` for a bill.
+    Serialize a completed `Call`.
     '''
     class Meta:
         model = CompletedCall
         fields = [
-            'destination', 'started_at', 'ended_at', 'duration', 'price'
+            'call_id', 'source', 'destination', 'started_at', 'ended_at',
+            'duration', 'price'
         ]
 
 
-class BillSerializer(Serializer):
+class CallRecordSerializer(Serializer):
     '''
-    Serializes a bill queryset (`Call`s).
+    Serializes, validate and save a `Call` record.
     '''
+
+    record_type = ChoiceField(choices=RECORD_TYPE_CHOICES)
+    call_id = IntegerField(required=True)
     source = RegexField(PHONE_REGEX)
-    period = CharField(required=True)
-    total = DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    calls = BillCallSerializer(many=True, read_only=True)
+    destination = RegexField(PHONE_REGEX)
+    timestamp = DateTimeField(required=True)
+
+    def validate_record_type(self, value):
+        if value not in RECORD_TYPE_CHOICES:
+            raise exceptions.InvalidRecordTypeRequestError
+        return value
+
+    def save(self):
+        '''
+        Saves the request.
+        '''
+        self._record_type = self.data['record_type']
+        if self._record_type == START:
+            self._object = Call.objects.create(
+                call_id=self.data['call_id'],
+                source=self.data['source'],
+                destination=self.data['destination'],
+                started_at=self.data['timestamp']
+            )
+
+        elif self._record_type == END:
+            self._object = NotCompletedCall.objects.complete(
+                call_id=self.data['call_id'],
+                ended_at=self.data['timestamp']
+            )
+
+    def get_return_serializer(self):
+        '''
+        Return a Serializer class that intended to serialize the returned
+        saved object.
+        '''
+        if self._record_type == START:
+            return NotCompletedCallSerializer(self._object)
+
+        elif self._record_type == END:
+            return CompletedCallSerializer(self._object)

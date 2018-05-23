@@ -2,6 +2,7 @@ from django.urls import path
 from call_records.views import CallRecordView
 
 
+app_name = 'call_records'
 urlpatterns = [
-    path('add/', CallRecordView.as_view(), name="add-record"),
+    path('post-record/', CallRecordView.as_view(), name="post-record"),
 ]

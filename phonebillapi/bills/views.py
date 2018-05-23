@@ -1,28 +1,17 @@
-from django.shortcuts import render
+from rest_framework.response import Response
+from rest_framework.exceptions import APIException
+from rest_framework.views import APIView
+from rest_framework import status
+from bills.serializers import BillInputSerializer, BillSerializer
 
 
-class BillRetrieveView(GenericAPIView):
+class BillRetrieveView(APIView):
     '''
     Get a bill API endpoint. Requires `source` and `period` GET parameters.
     If `period` is not given, then the actual period is used.
     '''
 
     http_method_names = ['get']
-    serializer_class = BillInputSerializer
-
-    @staticmethod
-    def get_period(period):
-        '''
-        Return a `date` of the period or a `date` of today`s month if period is
-        is None.
-        Raises exception if period is invalid.
-        '''
-        if period:
-            try:
-                return datetime.strptime(period, '%Y-%m').date()
-            except:
-                raise exceptions.InvalidPeriodDateError
-        return date.today().replace(day=1)
 
     def get(self, request):
         serializer = BillInputSerializer(data=self.request.GET)
@@ -33,23 +22,21 @@ class BillRetrieveView(GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        source = serializer.data.get('source')
         try:
-            period = self.get_period(serializer.data.get('period')) # TODO: make serializer return validated period already as a date
-            bill_queryset = CompletedCall.objects.get_bill(source, period)
+            bill_queryset = serializer.get_bill()
         except APIException as e:
             return Response(
                 dict(detail=e.default_detail), status=e.status_code
             )
 
-        result_serializer = BillSerializer(dict(
+        return_serializer = BillSerializer(dict(
             calls=bill_queryset,
             total=sum(
                 call.price for call in bill_queryset if call.price
             ),
-            period=period.strftime('%Y-%m'),
-            source=source
+            period=serializer.get_period(),
+            source=serializer.data['source']
         ))
-        return Response(result_serializer.data)
+        return Response(return_serializer.data)
 
 
