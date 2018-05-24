@@ -23,20 +23,12 @@ class BillRetrieveView(APIView):
             )
 
         try:
-            bill_queryset = serializer.get_bill()
+            bill = serializer.get_bill()
         except APIException as e:
             return Response(
                 dict(detail=e.default_detail), status=e.status_code
             )
 
-        return_serializer = BillSerializer(dict(
-            calls=bill_queryset,
-            total=sum(
-                call.price for call in bill_queryset if call.price
-            ),
-            period=serializer.get_period(),
-            source=serializer.data['source']
-        ))
-        return Response(return_serializer.data)
+        return Response(BillSerializer(bill).data)
 
 

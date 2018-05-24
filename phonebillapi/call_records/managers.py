@@ -1,6 +1,7 @@
 from dateutil.relativedelta import relativedelta
 from django.db import models
 from call_records import exceptions
+from bills.models import Bill
 
 
 class CallManager(models.Manager):
@@ -49,8 +50,16 @@ class NotCompletedCallManager(models.Manager):
             call.save(update_fields=['ended_at', 'price', 'updated_at'])
         except:
             raise exceptions.CallCompletionError
-        else:
-            return call
+
+        try:
+            bill, created = Bill.objects.get_or_create(
+                source=self.source, period=self.period
+            )
+            if not created:
+                bill.save(update_fields=['calls', 'total'])
+        except:
+            raise exceptions.CouldNotSaveCallIntoBill
+
 
 
 class CompletedCallManager(models.Manager):

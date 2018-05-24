@@ -28,7 +28,7 @@ class Call(models.Model):
         '''Return if the `Call` instance is complete, in other words, has
         start and end records.
         '''
-        return all([self.start_record, self.end_record])
+        return all([self.started_at, self.ended_at])
 
 
 class NotCompletedCall(Call):
