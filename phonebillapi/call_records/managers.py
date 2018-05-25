@@ -1,7 +1,7 @@
+from django.db import transaction
 from dateutil.relativedelta import relativedelta
 from django.db import models
 from call_records import exceptions
-from bills.models import Bill
 
 
 class CallManager(models.Manager):
@@ -31,6 +31,7 @@ class NotCompletedCallManager(models.Manager):
             ended_at__isnull=True
         )
 
+    @transaction.atomic
     def complete(self, call_id, ended_at):
         '''
         Complete a not completed call calculating it`s price.
@@ -52,13 +53,16 @@ class NotCompletedCallManager(models.Manager):
             raise exceptions.CallCompletionError
 
         try:
+            from bills.models import Bill
             bill, created = Bill.objects.get_or_create(
-                source=self.source, period=self.period
+                source=call.source,
+                period=ended_at.date().replace(day=1)
             )
             if not created:
                 bill.save(update_fields=['calls', 'total'])
         except:
-            raise exceptions.CouldNotSaveCallIntoBill
+            raise
+            # raise exceptions.CouldNotSaveCallIntoBill
 
 
 

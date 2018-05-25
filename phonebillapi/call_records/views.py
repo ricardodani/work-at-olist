@@ -7,7 +7,23 @@ from call_records.serializers import CallRecordSerializer
 
 class CallRecordView(APIView):
     '''
-    View to add call record requests, can create or complete a `Call`.
+    Save start and end call records (POST). Examples:
+
+    Start: \
+    {\
+        "record_type": "start", \
+        "call_id": 42, \
+        "source": "11999887766", \
+        "destination": "11888221100", \
+        "timestamp": "2010-10-01T12:00"\
+    }
+
+    End: \
+    {\
+        "record_type": "end", \
+        "call_id": 42, \
+        "timestamp": "2010-10-02T02:40"\
+    }
     '''
 
     http_method_names = ['post']

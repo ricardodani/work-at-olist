@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 from django.db import models
 from django.contrib.postgres import fields as pgfields
@@ -28,10 +29,13 @@ class Bill(models.Model):
         bill_qs = CompletedCall.objects.get_bill_queryset(
             self.source, self.period
         )
-        self.total, self.calls = Decimal('0.00'), []
+        total, calls = Decimal('0.00'), []
         for call in bill_qs:
-            self.calls.append(CompletedCallSerializer(call))
-            self.total += call.price  # TODO aggragate total
+            call_data = json.loads(CompletedCallSerializer(call).data)
+            calls.append(call_data)
+            total += call.price
+        self.calls = calls
+        self.total = total
 
     class Meta:
         indexes = [

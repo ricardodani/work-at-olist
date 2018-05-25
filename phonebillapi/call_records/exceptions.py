@@ -27,8 +27,8 @@ class CalculatePriceError(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-class InvalidRecordTypeRequestError(APIException):
+class CouldNotSaveCallIntoBill(APIException):
     default_detail = (
-        'Invalid of the call record request, should be `start` or `end`.',
+        'Could not save call into bill.'
     )
-    status_code = status.HTTP_400_BAD_REQUEST
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR

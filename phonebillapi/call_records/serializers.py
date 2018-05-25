@@ -1,9 +1,10 @@
-from rest_framework.serializers import Serializer, ModelSerializer
+from rest_framework.serializers import (
+    Serializer, ModelSerializer, ValidationError
+)
 from rest_framework.fields import (
     RegexField, IntegerField, DateTimeField, ChoiceField
 )
 from call_records.models import Call, NotCompletedCall, CompletedCall
-from call_records import exceptions
 
 
 PHONE_REGEX = r'^([0-9]){10,11}$'
@@ -41,32 +42,41 @@ class CallRecordSerializer(Serializer):
 
     record_type = ChoiceField(choices=RECORD_TYPE_CHOICES)
     call_id = IntegerField(required=True)
-    source = RegexField(PHONE_REGEX)
-    destination = RegexField(PHONE_REGEX)
+    source = RegexField(PHONE_REGEX, required=False)
+    destination = RegexField(PHONE_REGEX, required=False)
     timestamp = DateTimeField(required=True)
 
-    def validate_record_type(self, value):
-        if value not in RECORD_TYPE_CHOICES:
-            raise exceptions.InvalidRecordTypeRequestError
-        return value
+    def validate_start(self):
+        '''
+        In the case of start record, source and destinations are required.
+        '''
+        if self.validated_data['record_type'] == START and not all([
+                self.validated_data['source'],
+                self.validated_data['destination']
+        ]):
+            raise ValidationError(
+                'Source and destination are required on start record.'
+            )
+
+    def is_valid(self, *args, **kwargs):
+        return super().is_valid(*args, **kwargs) and self.validate_start()
 
     def save(self):
         '''
         Saves the request.
         '''
-        self._record_type = self.data['record_type']
-        if self._record_type == START:
+        if self.validated_data['record_type'] == START:
             self._object = Call.objects.create(
-                call_id=self.data['call_id'],
-                source=self.data['source'],
-                destination=self.data['destination'],
-                started_at=self.data['timestamp']
+                call_id=self.validated_data['call_id'],
+                source=self.validated_data['source'],
+                destination=self.validated_data['destination'],
+                started_at=self.validated_data['timestamp']
             )
 
-        elif self._record_type == END:
+        elif self.validated_data['record_type'] == END:
             self._object = NotCompletedCall.objects.complete(
-                call_id=self.data['call_id'],
-                ended_at=self.data['timestamp']
+                call_id=self.validated_data['call_id'],
+                ended_at=self.validated_data['timestamp']
             )
 
     def get_return_serializer(self):
@@ -74,8 +84,8 @@ class CallRecordSerializer(Serializer):
         Return a Serializer class that intended to serialize the returned
         saved object.
         '''
-        if self._record_type == START:
+        if self.validated_data['record_type'] == START:
             return NotCompletedCallSerializer(self._object)
 
-        elif self._record_type == END:
+        elif self.validated_data['record_type'] == END:
             return CompletedCallSerializer(self._object)

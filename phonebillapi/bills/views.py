@@ -29,6 +29,7 @@ class BillRetrieveView(APIView):
                 dict(detail=e.default_detail), status=e.status_code
             )
 
-        return Response(BillSerializer(bill).data)
+        bill_serializer = BillSerializer(bill)
+        return Response(bill_serializer.data)
 
 
