@@ -53,17 +53,9 @@ class NotCompletedCallManager(models.Manager):
             raise exceptions.CallCompletionError
 
         try:
-            from bills.models import Bill
-            bill, created = Bill.objects.get_or_create(
-                source=call.source,
-                period=ended_at.date().replace(day=1)
-            )
-            if not created:
-                bill.save(update_fields=['calls', 'total'])
+            call.save_bill()
         except:
-            raise
-            # raise exceptions.CouldNotSaveCallIntoBill
-
+            raise exceptions.BillSaveError
 
 
 class CompletedCallManager(models.Manager):

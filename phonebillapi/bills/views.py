@@ -1,8 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.views import APIView
-from rest_framework import status
-from bills.serializers import BillInputSerializer, BillSerializer
+from bills.serializers import BillInputSerializer
 
 
 class BillRetrieveView(APIView):
@@ -15,21 +14,15 @@ class BillRetrieveView(APIView):
 
     def get(self, request):
         serializer = BillInputSerializer(data=self.request.GET)
-
-        if not serializer.is_valid():
-            return Response(
-                dict(errors=serializer.errors),
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        serializer.is_valid(raise_exception=True)
 
         try:
-            bill = serializer.get_bill()
+            bill_data = serializer.get_serialized_bill()
         except APIException as e:
             return Response(
                 dict(detail=e.default_detail), status=e.status_code
             )
-
-        bill_serializer = BillSerializer(bill)
-        return Response(bill_serializer.data)
+        else:
+            return Response(bill_data)
 
 

@@ -3,6 +3,7 @@ from call_records.price import CallPrice
 from call_records.managers import (
     CallManager, CompletedCallManager, NotCompletedCallManager
 )
+from bills.models import Bill
 
 
 class Call(models.Model):
@@ -24,11 +25,24 @@ class Call(models.Model):
     objects = CallManager()
 
     @property
+    def period(self):
+        if self.is_completed:
+            return self.ended_at.date().replace(day=1)
+
+    @property
     def is_completed(self):
         '''Return if the `Call` instance is complete, in other words, has
         start and end records.
         '''
-        return all([self.started_at, self.ended_at])
+        return bool(self.started_at) and bool(self.ended_at)
+
+    def save_bill(self):
+        if self.is_completed:
+            return Bill.objects.update_or_create(
+                period=self.period, source=self.source
+            )
+        else:
+            raise Exception('Could not save bill of incomplete call')
 
 
 class NotCompletedCall(Call):
