@@ -57,6 +57,8 @@ class NotCompletedCallManager(models.Manager):
         except:
             raise exceptions.BillSaveError
 
+        return call
+
 
 class CompletedCallManager(models.Manager):
     '''

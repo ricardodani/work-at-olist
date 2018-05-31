@@ -40,6 +40,11 @@ class CallRecordSerializer(Serializer):
     Serializes, validate and save a `Call` record.
     '''
 
+    RETURN_SERIALIZERS = {
+        START: NotCompletedCallSerializer,
+        END: CompletedCallSerializer
+    }
+
     record_type = ChoiceField(choices=RECORD_TYPE_CHOICES)
     call_id = IntegerField(required=True)
     source = RegexField(PHONE_REGEX, required=False)
@@ -66,26 +71,18 @@ class CallRecordSerializer(Serializer):
         Saves the request.
         '''
         if self.validated_data['record_type'] == START:
-            self._object = Call.objects.create(
+            return Call.objects.create(
                 call_id=self.validated_data['call_id'],
                 source=self.validated_data['source'],
                 destination=self.validated_data['destination'],
                 started_at=self.validated_data['timestamp']
             )
 
-        elif self.validated_data['record_type'] == END:
-            self._object = NotCompletedCall.objects.complete(
+        else:
+            return NotCompletedCall.objects.complete(
                 call_id=self.validated_data['call_id'],
                 ended_at=self.validated_data['timestamp']
             )
 
     def get_return_serializer(self):
-        '''
-        Return a Serializer class that intended to serialize the returned
-        saved object.
-        '''
-        if self.validated_data['record_type'] == START:
-            return NotCompletedCallSerializer(self._object)
-
-        elif self.validated_data['record_type'] == END:
-            return CompletedCallSerializer(self._object)
+        return self.RETURN_SERIALIZERS[self.validated_data['record_type']]

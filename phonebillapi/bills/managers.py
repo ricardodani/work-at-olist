@@ -1,6 +1,5 @@
 from decimal import Decimal
 from django.db import models
-from bills.serializers import BillMetadataSerializer
 from call_records.models import CompletedCall
 
 
@@ -10,11 +9,12 @@ class BillManager(models.Manager):
         '''
         Returns bill serialized metadata from fetched calls.
         '''
+        from bills.serializers import BillMetadataSerializer
         bill_qs = CompletedCall.objects.get_bill_queryset(source, period)
 
         metadata = {'total': Decimal('0.00'), 'calls': list(bill_qs)}
         for call in metadata['calls']:
-            metadata['total'] += call
+            metadata['total'] += call.price
 
         return BillMetadataSerializer(metadata).data
 

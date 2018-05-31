@@ -32,11 +32,11 @@ class CallRecordView(APIView):
         try:
             serializer = CallRecordSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            serializer.save()
+            instance = serializer.save()
         except APIException as err:
             raise err
         else:
-            return_serializer = serializer.get_return_serializer()
+            return_serializer = serializer.get_return_serializer()(instance)
             return Response(
                 return_serializer.data, status=status.HTTP_201_CREATED
             )

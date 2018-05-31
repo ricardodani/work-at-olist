@@ -3,7 +3,6 @@ from call_records.price import CallPrice
 from call_records.managers import (
     CallManager, CompletedCallManager, NotCompletedCallManager
 )
-from bills.models import Bill
 
 
 class Call(models.Model):
@@ -37,6 +36,7 @@ class Call(models.Model):
         return bool(self.started_at) and bool(self.ended_at)
 
     def save_bill(self):
+        from bills.models import Bill
         if self.is_completed:
             return Bill.objects.update_or_create(
                 period=self.period, source=self.source

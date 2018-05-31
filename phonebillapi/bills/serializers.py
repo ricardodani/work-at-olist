@@ -37,7 +37,7 @@ class BillInputSerializer(Serializer):
 
     def get_serialized_bill(self):
         bill = Bill.objects.get(**self.validated_data)
-        return BillSerializer(bill)
+        return BillSerializer(bill).data
 
 
 class BillMetadataSerializer(Serializer):
