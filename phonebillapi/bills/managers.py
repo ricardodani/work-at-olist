@@ -1,5 +1,6 @@
 from decimal import Decimal
 from django.db import models
+from bills import exceptions
 from call_records.models import CompletedCall
 
 
@@ -32,3 +33,9 @@ class BillManager(models.Manager):
             },
             **kwargs
         )
+
+    def get(self, *args, **kwargs):
+        try:
+            return super().get(*args, **kwargs)
+        except:
+            raise exceptions.BillNotFoundError

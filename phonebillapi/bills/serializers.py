@@ -35,9 +35,8 @@ class BillInputSerializer(Serializer):
             raise ValidationError('Period day should be 1.')
         return value
 
-    def get_serialized_bill(self):
-        bill = Bill.objects.get(**self.validated_data)
-        return BillSerializer(bill).data
+    def get_bill(self):
+        return Bill.objects.get(**self.validated_data)
 
 
 class BillMetadataSerializer(Serializer):
