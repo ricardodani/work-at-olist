@@ -59,6 +59,9 @@ class NotCompletedCallManager(models.Manager):
 
         return call
 
+    def create(self, *args, **kwargs):
+        raise NotImplementedError
+
 
 class CompletedCallManager(models.Manager):
     '''
@@ -87,3 +90,6 @@ class CompletedCallManager(models.Manager):
             self._filter_period(period).filter(source=source)
             .order_by('-ended_at')
         )
+
+    def create(self, *args, **kwargs):
+        raise NotImplementedError

@@ -1,4 +1,4 @@
-from dateutil import tz
+from datetime import datetime, date
 from unittest.mock import patch, Mock
 from decimal import Decimal
 from django.utils.timezone import datetime, timedelta
@@ -9,33 +9,27 @@ from phonebill.models import Call, CallStart, CallEnd
 class TestCall(TestCase):
 
     def setUp(self):
-        self.call_start = CallStart.objects.create(
-            timestamp=datetime(2000, 1, 1, 1, 1, 1, tzinfo=tz.UTC)
+        self.call = Call.objects.create(
+            call_id=1,
+            source="21999000000",
+            destination="11999000000",
+            started_at=datetime(2000, 1, 2, 1, 1, 1, tzinfo=tz.UTC)
         )
-        self.call_end = CallEnd.objects.create(
-            timestamp=datetime(2000, 1, 2, 1, 1, 1, tzinfo=tz.UTC)
+
+    def test_can_create_inexistent_call(self):
+        self.assertEqual(self.call.pk, 1)
+
+    def test_cannot_create_existent_call(self):
+        with self.assertRaises(exceptions.CallExistsError):
+            Call.objects.create(
+                call_id=self.call.pk,
+                source="21999000000",
+                destination="11999000000",
+                started_at=datetime(2000, 1, 2, 1, 1, 1, tzinfo=tz.UTC)
+            )
+    def test_can_complete_a_incomplete_call(self):
+        call = IncompleteCall.objects.complete(
+            self.call.pk, datetime(2000, 1, 3, 1, 1, 1, tzinfo=tz.UTC)
         )
-        self.call = Call.objects.create(start_record=self.call_start)
-
-    def test_is_completed_property(self):
-        self.assertEqual(self.call.is_completed, False)
-        self.call.end_record = self.call_end
-        self.assertEqual(self.call.is_completed, True)
-
-    def test_duration_property(self):
-        self.assertEqual(self.call.duration, None)
-        self.call.end_record = self.call_end
-        self.assertEqual(self.call.duration, timedelta(days=1))
-
-    @patch('phonebill.models.CallPrice')
-    def test_save_sets_price(self, call_price_mock):
-        call_price_mock.return_value = Mock(calculate=Mock(
-            return_value=Decimal('1.00')
-        ))
-        self.assertEqual(self.call.price, None)
-        self.call.end_record = self.call_end
-        self.call.save()
-        self.assertEqual(call_price_mock.called, True)
-        self.call.save()
-        self.assertEqual(call_price_mock.call_count, 1)
-        self.assertEqual(self.call.price, Decimal('1.00'))
+        self.assertEqual(call.is_completed, True)
+        self.assertEqual(call.period, date(2000, 1, 1))
