@@ -20,3 +20,9 @@ class Bill(models.Model):
         indexes = [
             models.Index(fields=['source', 'period']),
         ]
+
+    def update_metadata(self):
+        self.metadata = Bill.objects.get_bill_serialized_metadata(
+            self.source, self.period
+        )
+        self.save(update_fields=['metadata'])

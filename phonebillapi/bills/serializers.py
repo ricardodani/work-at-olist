@@ -42,4 +42,3 @@ class BillInputSerializer(Serializer):
 class BillMetadataSerializer(Serializer):
     calls = CompletedCallSerializer(many=True)
     total = DecimalField(max_digits=10, decimal_places=2)
-

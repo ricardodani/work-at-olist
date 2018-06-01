@@ -80,7 +80,7 @@ class CompletedCall(Call):
         '''
         total_seconds = (self.ended_at - self.started_at).total_seconds()
         hours = int(total_seconds // 60 // 60)
-        minutes = int(total_seconds // 60)
+        minutes = int(total_seconds % hours // 60)
         seconds = int(total_seconds % 60)
         return '{}h{}m{}s'.format(hours, minutes, seconds)
 

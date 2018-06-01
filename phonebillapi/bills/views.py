@@ -14,12 +14,7 @@ class BillRetrieveView(APIView):
 
     def get(self, request):
         serializer = BillInputSerializer(data=self.request.GET)
-        # todo: if not period
-        # todo: redirect to todays period
-        try:
-            serializer.is_valid(raise_exception=True)
-        except:
-            # TODO: redirect to ?period=todays_period
+        serializer.is_valid(raise_exception=True)
 
         try:
             bill = serializer.get_bill()
