@@ -5,8 +5,10 @@ from call_records.models import CompletedCall
 
 
 class BillManager(models.Manager):
+    # TODO: make good use of managers
+    # Make update method be a admin action
 
-    def get_bill_serialized_metadata(self, source, period):
+    def _get_bill_serialized_metadata(self, source, period):
         '''
         Returns bill serialized metadata from fetched calls.
         '''
@@ -23,15 +25,9 @@ class BillManager(models.Manager):
         '''
         Create a bill if does not exist. Update it if exists.
         '''
+        metadata = self._get_bill_serialized_metadata(source, period)
         return super().update_or_create(
-            source=source,
-            period=period,
-            defaults={
-                'metadata': self.get_bill_serialized_metadata(
-                    source, period
-                )
-            },
-            **kwargs
+            source=source, period=period, defaults={'metadata': metadata}
         )
 
     def get(self, *args, **kwargs):
