@@ -1,5 +1,8 @@
+from decimal import Decimal
+from datetime import date
+from rest_framework.fields import DateField, DecimalField
 from rest_framework.serializers import (
-    Serializer, ModelSerializer, ValidationError
+    Serializer, ModelSerializer, ValidationError, SerializerMethodField
 )
 from rest_framework.fields import (
     RegexField, IntegerField, DateTimeField, ChoiceField
@@ -7,6 +10,9 @@ from rest_framework.fields import (
 from call_records.models import Call, NotCompletedCall, CompletedCall
 
 
+
+_todays_period = date.today().replace(day=1)
+PERIOD_FORMAT = '%Y-%m'
 PHONE_REGEX = r'^([0-9]){10,11}$'
 START, END = 'start', 'end'
 RECORD_TYPE_CHOICES = (START, END)
@@ -86,3 +92,35 @@ class CallRecordSerializer(Serializer):
 
     def get_return_serializer(self):
         return self.RETURN_SERIALIZERS[self.validated_data['record_type']]
+
+
+class BillInputSerializer(Serializer):
+    '''
+    Serializes and validate a `Bill` get request.
+    '''
+    source = RegexField(PHONE_REGEX)
+    period = DateField(
+        required=False, format=PERIOD_FORMAT, input_formats=[PERIOD_FORMAT],
+        default=_todays_period
+    )
+
+    def validate_period(self, value):
+        if value.day != 1:
+            raise ValidationError('Period day should be 1.')
+        return value
+
+    def get_bill_queryset(self):
+        return CompletedCall.objects.get_bill_queryset(
+            **self.validated_data
+        )
+
+
+class BillSerializer(Serializer):
+    calls = CompletedCallSerializer(many=True)
+    total = SerializerMethodField()
+
+    def get_total(self, obj):
+        if obj['calls']:
+            return sum(
+                call['price'] for call in obj['calls'].values('price')
+            )

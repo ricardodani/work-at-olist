@@ -1,5 +1,5 @@
-from django.db import transaction
 from dateutil.relativedelta import relativedelta
+from django.db import transaction
 from django.db import models
 from call_records import exceptions
 
@@ -52,15 +52,7 @@ class NotCompletedCallManager(models.Manager):
         except:
             raise exceptions.CallCompletionError
 
-        try:
-            call.save_bill()
-        except:
-            raise exceptions.BillSaveError
-
         return call
-
-    def create(self, *args, **kwargs):
-        raise NotImplementedError
 
 
 class CompletedCallManager(models.Manager):
@@ -86,10 +78,10 @@ class CompletedCallManager(models.Manager):
         Returns a bill queryset, in other words, completed calls from a source
         filtered by a period.
         '''
-        return (
+        calls = (
             self._filter_period(period).filter(source=source)
             .order_by('-ended_at')
         )
-
-    def create(self, *args, **kwargs):
-        raise NotImplementedError
+        if calls.count() == 0:
+            raise exceptions.BillNotFoundError
+        return calls

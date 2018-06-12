@@ -30,7 +30,6 @@ ALLOWED_HOSTS = []
 
 # Application definition
 INSTALLED_APPS = [
-    'bills',
     'call_records',
     'site_index',
 

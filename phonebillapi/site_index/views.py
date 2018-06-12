@@ -13,7 +13,7 @@ def index(request):
         'links': (
             Link(reverse('admin:index'), 'Admin', True),
             Link("/docs", 'Documentation', False),
-            Link(reverse('bills:get-bill'), 'Get a Bill API', False),
+            Link(reverse('call_records:get-bill'), 'Get a Bill API', False),
             Link(reverse('call_records:post-record'), 'Post a Call Record API', False),
         )
     })

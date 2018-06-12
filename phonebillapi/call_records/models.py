@@ -35,19 +35,6 @@ class Call(models.Model):
         '''
         return bool(self.started_at) and bool(self.ended_at)
 
-    def save_bill(self):
-        '''
-        Save this `Call` in a `Bill`, updating if existent or creating new
-        one).
-        '''
-        from bills.models import Bill  # avoid circular import
-        if self.is_completed:
-            return Bill.objects.update_or_create(
-                period=self.period, source=self.source
-            )
-        else:
-            raise Exception('Could not call save on incomplete call')
-
 
 class NotCompletedCall(Call):
     '''

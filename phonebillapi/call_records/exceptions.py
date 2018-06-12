@@ -2,11 +2,6 @@ from rest_framework.exceptions import APIException
 from rest_framework import status
 
 
-class BillSaveError(APIException):
-    default_detail = 'Could not save bill.'
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-
-
 class CallCreationError(APIException):
     default_detail = 'Failed to create call record.'
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -32,8 +27,6 @@ class CalculatePriceError(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-class CouldNotSaveCallIntoBill(APIException):
-    default_detail = (
-        'Could not save call into bill.'
-    )
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+class BillNotFoundError(APIException):
+    default_detail = 'No bill found.'
+    status_code = status.HTTP_404_NOT_FOUND
