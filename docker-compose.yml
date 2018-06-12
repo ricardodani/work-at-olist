@@ -1,36 +1,22 @@
 version: '3'
 
-networks:
-    phonebillapi:
-        driver: bridge
-        ipam:
-            config:
-                - subnet: 10.0.2.0/26
-
 services:
 
     nginx:
         build: ./nginx
         volumes:
-            - static:/static
-            - ./docs/build:/docs
+            - static:/srv/static
+            - ./phonebillapi/docs/build:/srv/docs
         ports:
             - "80:80"
         links:
             - "web:web"
-        networks:
-            phonebillapi:
-                ipv4_address: 10.0.2.10
-
     db:
         image: postgres
         volumes:
             - pgdata:/var/lib/postgresql/data
         ports:
             - "5432:5432"
-        networks:
-            phonebillapi:
-                ipv4_address: 10.0.2.11
 
     web:
         build: ./phonebillapi
@@ -40,10 +26,8 @@ services:
         depends_on:
             - db
         volumes:
-            - ./phonebillapi:/usr/src/app
-        networks:
-            phonebillapi:
-                ipv4_address: 10.0.2.12
+            - ./phonebillapi:/srv/web
+            - static:/srv/static
 
 volumes:
     pgdata: {}

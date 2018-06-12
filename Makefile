@@ -7,14 +7,17 @@ _db:
 migrate: _db
 	@docker-compose run web python manage.py migrate
 
+static: _db
+	@docker-compose run web python manage.py collectstatic --noinput
+
 superuser: _db
 	@docker-compose run web python manage.py createsuperuser
 
-run: migrate
+run: build migrate static
 	@docker-compose up
 
 run-dev: _db
-	@docker-compose run --service-ports web python manage.py runserver 0:8000
+	@docker-compose run --service-ports -e DEBUG=1 web python manage.py runserver 0:8000
 
 test:
 	@docker-compose run web python manage.py test

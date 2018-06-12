@@ -34,7 +34,7 @@ class NotCompletedCallManager(models.Manager):
     @transaction.atomic
     def complete(self, call_id, ended_at):
         '''
-        Complete a not completed call calculating it`s price.
+        Complete a not completed call calculating it`s price and return it.
         '''
         try:
             call = self.get_queryset().get(call_id=call_id)
