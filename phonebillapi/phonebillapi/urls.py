@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework.documentation import include_docs_urls
 
 
 urlpatterns = [
@@ -10,7 +9,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 ]
 
-# django-debug-toolbar
 if settings.DEBUG:
     import debug_toolbar
     urlpatterns = [

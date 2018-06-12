@@ -25,8 +25,5 @@ test:
 shell: _db
 	@docker-compose run web python manage.py shell
 
-_docs:
+docs:
 	@docker-compose run web sphinx-build -b html docs/source docs/build
-
-docs: _docs
-	@open phonebillapi/docs/build/index.html
