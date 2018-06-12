@@ -3,18 +3,19 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Phonebill Documentation's documentation!
-===================================================
-
+PhoneBill API Documentation!
+============================
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   about
+   installing
+   using
+   deploying
 
 
 Indices and tables
 ==================
 
-* :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
