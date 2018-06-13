@@ -1,6 +1,5 @@
-from decimal import Decimal
 from datetime import date
-from rest_framework.fields import DateField, DecimalField
+from rest_framework.fields import DateField
 from rest_framework.serializers import (
     Serializer, ModelSerializer, ValidationError, SerializerMethodField
 )
@@ -72,12 +71,15 @@ class CallRecordSerializer(Serializer):
     def is_valid(self, *args, **kwargs):
         return super().is_valid(*args, **kwargs) and self.validate_start()
 
+    def _get_return_serializer(self):
+        return self.RETURN_SERIALIZERS[self.validated_data['record_type']]
+
     def save(self):
         '''
         Saves the request.
         '''
         if self.validated_data['record_type'] == START:
-            return Call.objects.create(
+            instance = Call.objects.create(
                 call_id=self.validated_data['call_id'],
                 source=self.validated_data['source'],
                 destination=self.validated_data['destination'],
@@ -85,13 +87,26 @@ class CallRecordSerializer(Serializer):
             )
 
         else:
-            return NotCompletedCall.objects.complete(
+            instance = NotCompletedCall.objects.complete(
                 call_id=self.validated_data['call_id'],
                 ended_at=self.validated_data['timestamp']
             )
+        return_serializer = self._get_return_serializer()(instance)
+        return return_serializer.data
 
-    def get_return_serializer(self):
-        return self.RETURN_SERIALIZERS[self.validated_data['record_type']]
+
+class BillSerializer(Serializer):
+    '''
+    Serializes a `CompletedCall` queryset into as a bill.
+    '''
+    calls = CompletedCallSerializer(many=True)
+    total = SerializerMethodField()
+
+    def get_total(self, obj):
+        if obj['calls']:
+            return sum(
+                call['price'] for call in obj['calls'].values('price')
+            )
 
 
 class BillInputSerializer(Serializer):
@@ -109,18 +124,9 @@ class BillInputSerializer(Serializer):
             raise ValidationError('Period day should be 1.')
         return value
 
-    def get_bill_queryset(self):
-        return CompletedCall.objects.get_bill_queryset(
+    def get_bill_data(self):
+        queryset = CompletedCall.objects.get_bill_queryset(
             **self.validated_data
         )
-
-
-class BillSerializer(Serializer):
-    calls = CompletedCallSerializer(many=True)
-    total = SerializerMethodField()
-
-    def get_total(self, obj):
-        if obj['calls']:
-            return sum(
-                call['price'] for call in obj['calls'].values('price')
-            )
+        serializer = BillSerializer({'calls': queryset})
+        return serializer.data

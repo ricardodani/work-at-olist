@@ -13,7 +13,6 @@ Welcome to "PhoneBill API" Documentation! This software gives you a tested API t
    deploying
 
 
-
 Indices and tables
 ==================
 
