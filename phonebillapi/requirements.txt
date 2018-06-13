@@ -5,5 +5,3 @@ ipdb
 python-dateutil
 sphinx
 django-debug-toolbar
-pygments
-coreapi
