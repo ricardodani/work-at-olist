@@ -16,6 +16,8 @@
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Using" href="using.html" />
+    <link rel="prev" title="About this Project" href="about.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -32,6 +34,65 @@
             
   <div class="section" id="installing">
 <h1>Installing<a class="headerlink" href="#installing" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="pre-requisites">
+<h2>Pre-requisites<a class="headerlink" href="#pre-requisites" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Docker (tested on version 18.03.1-ce)</li>
+<li>docker-compose (tested on version 1.12.0)</li>
+</ul>
+</div>
+<div class="section" id="install-locally-with-docker">
+<h2>Install locally with docker<a class="headerlink" href="#install-locally-with-docker" title="Permalink to this headline">¶</a></h2>
+<p>For convenience, a very useful Makefile is available, so, to install it all, first, build de containers with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span>
+</pre></div>
+</div>
+<p>After it, you can run the development environment, with debug tools (django debug toolbar, <cite>ipdb</cite> and <cite>DEBUG=True</cite>) available at port <a class="reference external" href="http://localhost:8000/">8000</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">run</span><span class="o">-</span><span class="n">dev</span>
+</pre></div>
+</div>
+<p>Or, to run it with a production-like environment, available at port <a class="reference external" href="http://localhost/">80</a>, type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">run</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="testing-the-application">
+<h2>Testing the application<a class="headerlink" href="#testing-the-application" title="Permalink to this headline">¶</a></h2>
+<p>To test the application using the Django test framework, type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">test</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="useful-commands">
+<h2>Useful commands<a class="headerlink" href="#useful-commands" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">Access the python shell:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">shell</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Rebuild the docs:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">docs</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Migrate the database:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">migrate</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Create a admin superuser:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">superuser</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Rebuild docker intances:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">build</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
 </div>
 
 
@@ -39,10 +100,23 @@
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper"><div class="relations">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installing</a><ul>
+<li><a class="reference internal" href="#pre-requisites">Pre-requisites</a></li>
+<li><a class="reference internal" href="#install-locally-with-docker">Install locally with docker</a></li>
+<li><a class="reference internal" href="#testing-the-application">Testing the application</a></li>
+<li><a class="reference internal" href="#useful-commands">Useful commands</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="about.html" title="previous chapter">About this Project</a></li>
+      <li>Next: <a href="using.html" title="next chapter">Using</a></li>
   </ul></li>
 </ul>
 </div>

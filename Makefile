@@ -13,7 +13,7 @@ static: _db
 superuser: _db
 	@docker-compose run web python manage.py createsuperuser
 
-run: build migrate static
+run: migrate static
 	@docker-compose up
 
 run-dev: _db

@@ -1,10 +1,8 @@
-.. Phonebill Documentation documentation master file, created by
-   sphinx-quickstart on Wed May 16 05:37:55 2018.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+PhoneBill API Docs
+==================
 
-PhoneBill API Documentation!
-============================
+Welcome to "PhoneBill API" Documentation! This software gives you a tested API to record phone calls and calculate bills.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
@@ -13,6 +11,7 @@ PhoneBill API Documentation!
    installing
    using
    deploying
+
 
 
 Indices and tables
