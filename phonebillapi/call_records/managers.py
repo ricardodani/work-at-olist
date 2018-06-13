@@ -82,6 +82,6 @@ class CompletedCallManager(models.Manager):
             self._filter_period(period).filter(source=source)
             .order_by('-ended_at')
         )
-        if calls.count() == 0:
+        if not calls.exists():
             raise exceptions.BillNotFoundError
         return calls

@@ -104,9 +104,7 @@ class BillSerializer(Serializer):
 
     def get_total(self, obj):
         if obj['calls']:
-            return sum(
-                call['price'] for call in obj['calls'].values('price')
-            )
+            return sum(call.price for call in obj['calls'])
 
 
 class BillInputSerializer(Serializer):
