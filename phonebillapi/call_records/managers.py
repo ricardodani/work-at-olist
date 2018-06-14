@@ -1,5 +1,4 @@
 from dateutil.relativedelta import relativedelta
-from django.db import transaction
 from django.db import models
 from call_records import exceptions
 
@@ -28,7 +27,6 @@ class NotCompletedCallManager(models.Manager):
         except:
             raise exceptions.CallCreationError
 
-    @transaction.atomic
     def complete(self, call_id, ended_at):
         '''
         Complete a not completed call calculating it`s price and return it.
