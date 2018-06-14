@@ -11,6 +11,7 @@ Welcome to "PhoneBill API" Documentation! This software gives you a tested API t
    installing
    using
    deploying
+   arquitecture
 
 
 Indices and tables

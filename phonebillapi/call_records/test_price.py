@@ -1,7 +1,7 @@
 from decimal import Decimal
 from django.test import TestCase
 from django.utils.timezone import datetime
-from phonebill.price import CallPrice
+from call_records.price import CallPrice
 
 
 class TestCallPrice(TestCase):
