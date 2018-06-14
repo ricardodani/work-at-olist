@@ -101,6 +101,8 @@ class BillSerializer(Serializer):
     '''
     calls = CompletedCallSerializer(many=True)
     total = SerializerMethodField()
+    period = DateField(format=PERIOD_FORMAT)
+    source = RegexField(PHONE_REGEX)
 
     def get_total(self, obj):
         if obj['calls']:
@@ -123,8 +125,12 @@ class BillInputSerializer(Serializer):
         return value
 
     def get_bill_data(self):
-        queryset = CompletedCall.objects.get_bill_queryset(
+        calls_queryset = CompletedCall.objects.get_bill_queryset(
             **self.validated_data
         )
-        serializer = BillSerializer({'calls': queryset})
+        serializer = BillSerializer({
+            'calls': calls_queryset,
+            'period': self.validated_data['period'],
+            'source': self.validated_data['source']
+        })
         return serializer.data
