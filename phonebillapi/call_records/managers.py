@@ -4,13 +4,20 @@ from django.db import models
 from call_records import exceptions
 
 
-class CallManager(models.Manager):
+class NotCompletedCallManager(models.Manager):
+    '''
+    Manager that filters only not completed calls.
+    '''
+    def get_queryset(self, *args, **kwargs):
+        return super().get_queryset(*args, **kwargs).filter(
+            ended_at__isnull=True
+        )
 
     def create(self, call_id, source, destination, started_at):
         '''
         Create a call if does not exists.
         '''
-        if self.get_queryset().filter(call_id=call_id).exists():
+        if super().get_queryset().filter(call_id=call_id).exists():
             raise exceptions.CallExistsError
 
         try:
@@ -20,16 +27,6 @@ class CallManager(models.Manager):
             )
         except:
             raise exceptions.CallCreationError
-
-
-class NotCompletedCallManager(models.Manager):
-    '''
-    Manager that filters only not completed calls.
-    '''
-    def get_queryset(self, *args, **kwargs):
-        return super().get_queryset(*args, **kwargs).filter(
-            ended_at__isnull=True
-        )
 
     @transaction.atomic
     def complete(self, call_id, ended_at):
@@ -85,3 +82,6 @@ class CompletedCallManager(models.Manager):
         if not calls.exists():
             raise exceptions.BillNotFoundError
         return calls
+
+    def create(self, *args, **kwargs):
+        raise NotImplementedError

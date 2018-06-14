@@ -1,7 +1,7 @@
 from django.db import models
 from call_records.price import CallPrice
 from call_records.managers import (
-    CallManager, CompletedCallManager, NotCompletedCallManager
+    CompletedCallManager, NotCompletedCallManager
 )
 
 
@@ -20,8 +20,6 @@ class Call(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    objects = CallManager()
 
     @property
     def period(self):

@@ -6,7 +6,7 @@ from rest_framework.serializers import (
 from rest_framework.fields import (
     RegexField, IntegerField, DateTimeField, ChoiceField
 )
-from call_records.models import Call, NotCompletedCall, CompletedCall
+from call_records.models import NotCompletedCall, CompletedCall
 
 
 
@@ -79,7 +79,7 @@ class CallRecordSerializer(Serializer):
         Saves the request.
         '''
         if self.validated_data['record_type'] == START:
-            instance = Call.objects.create(
+            instance = NotCompletedCall.objects.create(
                 call_id=self.validated_data['call_id'],
                 source=self.validated_data['source'],
                 destination=self.validated_data['destination'],
