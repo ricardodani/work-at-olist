@@ -5,3 +5,4 @@ ipdb
 python-dateutil
 sphinx
 django-debug-toolbar
+mock
