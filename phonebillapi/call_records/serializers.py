@@ -42,7 +42,8 @@ class CompletedCallSerializer(ModelSerializer):
 
 class CallStartSerializer(Serializer):
     '''
-    Serializes a call start payload and returns a new serialized `NotCompletedCall`
+    Serializes a call start payload and returns a new serialized
+    `NotCompletedCall`
     if valid input.
     '''
 
@@ -66,7 +67,8 @@ class CallStartSerializer(Serializer):
 
 class CallEndSerializer(Serializer):
     '''
-    Serializes a call end payload and returns a updated serialized `CompletedCall`
+    Serializes a call end payload and returns a updated serialized
+    `CompletedCall`
     if valid input.
     '''
 
@@ -86,7 +88,7 @@ class CallEndSerializer(Serializer):
 
 class BillCompletedCallSerializer(ModelSerializer):
     '''
-    Serialize a completed `Call` for bill serializer.
+    Serialize a completed `Call` for the bill serializer.
     '''
     class Meta:
         model = CompletedCall
