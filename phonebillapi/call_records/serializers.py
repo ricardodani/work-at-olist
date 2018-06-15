@@ -4,7 +4,7 @@ from rest_framework.serializers import (
     Serializer, ModelSerializer, ValidationError, SerializerMethodField
 )
 from rest_framework.fields import (
-    RegexField, IntegerField, DateTimeField, ChoiceField
+    RegexField, IntegerField, DateTimeField
 )
 from call_records.models import NotCompletedCall, CompletedCall
 
@@ -24,7 +24,7 @@ class NotCompletedCallSerializer(ModelSerializer):
     class Meta:
         model = NotCompletedCall
         fields = [
-            'call_id', 'source', 'destination', 'started_at',
+            'call_id', 'source', 'destination', 'started_at', 'is_completed'
         ]
 
 
@@ -36,70 +36,71 @@ class CompletedCallSerializer(ModelSerializer):
         model = CompletedCall
         fields = [
             'call_id', 'source', 'destination', 'started_at', 'ended_at',
-            'duration', 'price'
+            'duration', 'price', 'is_completed'
         ]
 
 
-class CallRecordSerializer(Serializer):
+class CallStartSerializer(Serializer):
     '''
-    Serializes, validate and save a `Call` record.
+    Serializes a call start payload and returns a new serialized `NotCompletedCall`
+    if valid input.
     '''
 
-    RETURN_SERIALIZERS = {
-        START: NotCompletedCallSerializer,
-        END: CompletedCallSerializer
-    }
-
-    record_type = ChoiceField(choices=RECORD_TYPE_CHOICES)
     call_id = IntegerField(required=True)
-    source = RegexField(PHONE_REGEX, required=False)
-    destination = RegexField(PHONE_REGEX, required=False)
+    source = RegexField(PHONE_REGEX, required=True)
+    destination = RegexField(PHONE_REGEX, required=True)
     timestamp = DateTimeField(required=True)
-
-    def validate_start(self):
-        '''
-        In the case of start record, source and destinations are required.
-        '''
-        if self.validated_data['record_type'] == START and not all([
-                self.validated_data['source'],
-                self.validated_data['destination']
-        ]):
-            raise ValidationError(
-                'Source and destination are required on start record.'
-            )
-
-    def is_valid(self, *args, **kwargs):
-        return super().is_valid(*args, **kwargs) and self.validate_start()
-
-    def _get_return_serializer(self):
-        return self.RETURN_SERIALIZERS[self.validated_data['record_type']]
 
     def save(self):
         '''
-        Saves the request.
+        Create with validated data and returns a serialized `NotCompletedCall`.
         '''
-        if self.validated_data['record_type'] == START:
-            instance = NotCompletedCall.objects.create(
-                call_id=self.validated_data['call_id'],
-                source=self.validated_data['source'],
-                destination=self.validated_data['destination'],
-                started_at=self.validated_data['timestamp']
-            )
+        call = NotCompletedCall.objects.create(
+            call_id=self.validated_data['call_id'],
+            source=self.validated_data['source'],
+            destination=self.validated_data['destination'],
+            started_at=self.validated_data['timestamp']
+        )
+        return NotCompletedCallSerializer(call).data
 
-        else:
-            instance = NotCompletedCall.objects.complete(
-                call_id=self.validated_data['call_id'],
-                ended_at=self.validated_data['timestamp']
-            )
-        return_serializer = self._get_return_serializer()(instance)
-        return return_serializer.data
+
+class CallEndSerializer(Serializer):
+    '''
+    Serializes a call end payload and returns a updated serialized `CompletedCall`
+    if valid input.
+    '''
+
+    call_id = IntegerField(required=True)
+    timestamp = DateTimeField(required=True)
+
+    def save(self):
+        '''
+        Complete with validated data and returns a serialized `CompletedCall`.
+        '''
+        call = NotCompletedCall.objects.complete(
+            call_id=self.validated_data['call_id'],
+            ended_at=self.validated_data['timestamp']
+        )
+        return CompletedCallSerializer(call).data
+
+
+class BillCompletedCallSerializer(ModelSerializer):
+    '''
+    Serialize a completed `Call` for bill serializer.
+    '''
+    class Meta:
+        model = CompletedCall
+        fields = [
+            'call_id', 'destination', 'started_at', 'ended_at',
+            'duration', 'price'
+        ]
 
 
 class BillSerializer(Serializer):
     '''
     Serializes a `CompletedCall` queryset into as a bill.
     '''
-    calls = CompletedCallSerializer(many=True)
+    calls = BillCompletedCallSerializer(many=True)
     total = SerializerMethodField()
     period = DateField(format=PERIOD_FORMAT)
     source = RegexField(PHONE_REGEX)

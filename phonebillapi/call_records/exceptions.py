@@ -30,3 +30,8 @@ class CalculatePriceError(APIException):
 class BillNotFoundError(APIException):
     default_detail = 'No bill found.'
     status_code = status.HTTP_404_NOT_FOUND
+
+
+class InvalidCallRecordType(APIException):
+    default_detail = 'Invalid call record type, choices are "start" and "end"'
+    status_code = status.HTTP_400_BAD_REQUEST
