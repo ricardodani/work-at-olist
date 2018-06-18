@@ -3,12 +3,12 @@ from rest_framework import status
 
 
 class CallCreationError(APIException):
-    default_detail = 'Failed to create call record.'
+    default_detail = 'Failed to create call record'
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 class CallCompletionError(APIException):
-    default_detail = 'Failed to complete call record.'
+    default_detail = 'Failed to complete call record'
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
@@ -23,8 +23,12 @@ class CallExistsError(APIException):
 
 
 class CalculatePriceError(APIException):
-    default_detail = 'Calculation of the price call failed.'
+    default_detail = 'Price calculation failed'
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    def __init__(self, calculate_err, *args, **kwargs):
+        self.detail = ': '.join(self.default_detail, str(calculate_err))
+        super().__init__(*args, **kwargs)
 
 
 class BillNotFoundError(APIException):

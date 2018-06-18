@@ -1,7 +1,9 @@
 from dateutil.relativedelta import relativedelta
 from django.db import transaction
 from django.db import models
+from django.core.exceptions import ObjectDoesNotExist
 from call_records import exceptions
+from call_records.price import CallPriceBaseError
 
 
 class NotCompletedCallManager(models.Manager):
@@ -21,13 +23,10 @@ class NotCompletedCallManager(models.Manager):
         if super().get_queryset().filter(call_id=call_id).exists():
             raise exceptions.CallExistsError
 
-        try:
-            return super().create(
-                call_id=call_id, source=source, destination=destination,
-                started_at=started_at
-            )
-        except:
-            raise exceptions.CallCreationError
+        return super().create(
+            call_id=call_id, source=source, destination=destination,
+            started_at=started_at
+        )
 
     @transaction.atomic
     def complete(self, call_id, ended_at):
@@ -36,20 +35,16 @@ class NotCompletedCallManager(models.Manager):
         '''
         try:
             call = self.get_queryset().get(call_id=call_id)
-        except:
+        except ObjectDoesNotExist:
             raise exceptions.NoCallToEndError
 
         call.ended_at = ended_at
         try:
             call.set_price()
-        except:
-            raise exceptions.CalculatePriceError
+        except CallPriceBaseError as e:
+            raise exceptions.CalculatePriceError(e)
 
-        try:
-            call.save(update_fields=['ended_at', 'price', 'updated_at'])
-        except:
-            raise exceptions.CallCompletionError
-
+        call.save(update_fields=['ended_at', 'price', 'updated_at'])
         return call
 
 

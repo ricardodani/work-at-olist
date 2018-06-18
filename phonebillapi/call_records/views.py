@@ -1,3 +1,4 @@
+import logging
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
@@ -6,6 +7,19 @@ from call_records.serializers import (
     CallStartSerializer, CallEndSerializer, BillInputSerializer
 )
 from call_records import exceptions
+
+
+logger = logging.getLogger(__name__)
+
+
+def log_api_exception(api_exception):
+    '''
+    Log exceptions as error if is server error or as info elsewhere.
+    '''
+    if api_exception.status >= 500:
+        log.error(api_exception)
+    else:
+        log.info(api_exception)
 
 
 class CallRecordView(APIView):
@@ -51,6 +65,7 @@ class CallRecordView(APIView):
         # Note: The reason I don't treat the record types as two different
         # endpoints is just because it's a requirement for the challange,
         # as written in README
+
         record_type = request.data.get('record_type')
         if record_type not in self.record_serializers:
             raise exceptions.InvalidCallRecordType
@@ -66,7 +81,11 @@ class CallRecordView(APIView):
             serializer.is_valid(raise_exception=True)
             call_data = serializer.save()
         except APIException as api_exception:
+            log_api_exception(api_exception)
             raise api_exception
+        except Exception as e:
+            logger.critical(e)
+            raise APIException
         else:
             return Response(
                 call_data, status=status.HTTP_201_CREATED
@@ -102,6 +121,10 @@ class BillRetrieveView(APIView):
             serializer.is_valid(raise_exception=True)
             bill_data = serializer.get_bill_data()
         except APIException as api_exception:
+            log_api_exception(api_exception)
             raise api_exception
+        except Exception as e:
+            logger.critical(e)
+            raise APIException
         else:
             return Response(bill_data)

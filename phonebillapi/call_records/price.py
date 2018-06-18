@@ -2,6 +2,20 @@ from datetime import datetime, time, timedelta
 from decimal import Decimal
 
 
+class CallPriceBaseError(Exception):
+    pass
+
+
+class CallPriceInvalidInputError(CallPriceBaseError):
+    message = 'Input types are not valid types.'
+
+class CallPriceStartGtEndError(CallPriceBaseError):
+    message = 'End should be greater or equal than start.'
+
+class CallPriceEndInFutureError(CallPriceBaseError):
+    message = 'Impossible to calculate calls that end at future.'
+
+
 class CallPrice(object):
     '''Class to calculate call prices based on tariff ranges.
     '''
@@ -16,10 +30,11 @@ class CallPrice(object):
             isinstance(started_at, datetime) and isinstance(ended_at, datetime)
         )
         if invalid_types:
-            raise TypeError
-        start_is_in_future = started_at > ended_at
-        if start_is_in_future:
-            raise ValueError
+            raise CallPriceInvalidInputException
+        if started_at > ended_at:
+            raise CallStartGtEndException
+        if ended_at > datetime.now():
+            raise CallEndInFutureException
         self.started_at, self.ended_at = started_at, ended_at
 
     def _calculate_range_price(self, start, end):

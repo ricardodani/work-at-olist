@@ -1,25 +1,47 @@
+from datetime import timedelta
 from decimal import Decimal
 from django.test import TestCase
 from django.utils.timezone import datetime
-from call_records.price import CallPrice
+from call_records.price import (
+    CallPrice, CallPriceInvalidInputError, CallPriceStartGtEndError,
+    CallPriceEndInFutureError
+)
 
 
 class TestCallPrice(TestCase):
 
     def test_invalid_types_raises_type_error(self):
-        dt = datetime(2010, 10, 10, 1, 1, 1)
-        self.assertRaises(TypeError, CallPrice, started_at=None, ended_at=None)
-        self.assertRaises(TypeError, CallPrice, started_at=dt, ended_at=None)
-        self.assertRaises(TypeError, CallPrice, started_at=None, ended_at=dt)
-        self.assertRaises(TypeError, CallPrice, started_at=2, ended_at=1)
-        self.assertRaises(TypeError, CallPrice, started_at="1", ended_at="2")
+        test_cases = (
+            {'started_at': None, 'ended_at': None},
+            {'started_at': datetime(2010, 10, 10, 1, 1, 1), 'ended_at': None},
+            {'started_at': None, 'ended_at': datetime(2010, 10, 10, 1, 1, 1)},
+            {'started_at': 2, 'ended_at': 1},
+            {'started_at': "1", 'ended_at': "2"},
+        )
+        for tc in test_cases:
+            self.assertRaises(CallPriceInvalidInputError, CallPrice, **tc)
+
+    def test_start_grater_than_end_raises_value_error(self):
+        test_cases = (
+            {
+                'started_at': datetime(2011, 11, 11, 2, 2, 2),
+                'ended_at': datetime(2010, 10, 10, 1, 1, 1)
+            },
+            {
+                'started_at': datetime(2010, 10, 10, 1, 1, 2),
+                'ended_at': datetime(2010, 10, 10, 1, 1, 1)
+            },
+        )
+        for tc in test_cases:
+            self.assertRaises(CallPriceStartGtEndError, CallPrice, **tc)
 
     def test_start_in_future_raises_value_error(self):
-        ds1 = datetime(2011, 11, 11, 2, 2, 2)
-        ds2 = datetime(2010, 10, 10, 1, 1, 2)
-        de = datetime(2010, 10, 10, 1, 1, 1)
-        self.assertRaises(ValueError, CallPrice, started_at=ds1, ended_at=de)
-        self.assertRaises(ValueError, CallPrice, started_at=ds2, ended_at=de)
+        start = datetime.now() + timedelta(seconds=1)
+        end = datetime.now() + timedelta(seconds=10)
+        self.assertRaises(
+            CallPriceEndInFutureError, CallPrice, started_at=start,
+            ended_at=end
+        )
 
     def test_calculate_equal_values_return_zero(self):
         ds = de = datetime(2011, 11, 11, 2, 2, 2)

@@ -1,13 +1,12 @@
 from datetime import date
 from rest_framework.fields import DateField
 from rest_framework.serializers import (
-    Serializer, ModelSerializer, ValidationError, SerializerMethodField
+    Serializer, ModelSerializer, SerializerMethodField
 )
 from rest_framework.fields import (
     RegexField, IntegerField, DateTimeField
 )
 from call_records.models import NotCompletedCall, CompletedCall
-
 
 
 _todays_period = date.today().replace(day=1)
@@ -121,11 +120,6 @@ class BillInputSerializer(Serializer):
         required=False, format=PERIOD_FORMAT, input_formats=[PERIOD_FORMAT],
         default=_todays_period
     )
-
-    def validate_period(self, value):
-        if value.day != 1:
-            raise ValidationError('Period day should be 1.')
-        return value
 
     def get_bill_data(self):
         calls_queryset = CompletedCall.objects.get_bill_queryset(

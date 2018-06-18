@@ -22,11 +22,6 @@ class Call(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     @property
-    def period(self):
-        if self.is_completed:
-            return self.ended_at.date().replace(day=1)
-
-    @property
     def is_completed(self):
         '''Return if the `Call` instance is complete, in other words, has
         start and end records.
@@ -58,6 +53,10 @@ class CompletedCall(Call):
     A call proxy model class for completed calls.
     '''
     objects = CompletedCallManager()
+
+    @property
+    def period(self):
+        return self.ended_at.date().replace(day=1)
 
     @property
     def duration(self):
