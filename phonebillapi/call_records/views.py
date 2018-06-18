@@ -16,10 +16,10 @@ def log_api_exception(api_exception):
     '''
     Log exceptions as error if is server error or as info elsewhere.
     '''
-    if api_exception.status >= 500:
-        log.error(api_exception)
+    if api_exception.status_code >= status.HTTP_500_INTERNAL_SERVER_ERROR:
+        logger.error(api_exception)
     else:
-        log.info(api_exception)
+        logger.info(api_exception)
 
 
 class CallRecordView(APIView):
@@ -52,10 +52,6 @@ class CallRecordView(APIView):
     '''
 
     http_method_names = ['post']
-    record_serializers = {
-        'start': CallStartSerializer,
-        'end': CallEndSerializer,
-    }
 
     def get_serializer_class(self, request):
         '''
@@ -65,11 +61,13 @@ class CallRecordView(APIView):
         # Note: The reason I don't treat the record types as two different
         # endpoints is just because it's a requirement for the challange,
         # as written in README
-
         record_type = request.data.get('record_type')
-        if record_type not in self.record_serializers:
+        if record_type == 'start':
+            return CallStartSerializer
+        elif record_type == 'end':
+            return CallEndSerializer
+        else:
             raise exceptions.InvalidCallRecordType
-        return self.record_serializers[record_type]
 
     def post(self, request, format=None):
         '''

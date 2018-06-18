@@ -27,11 +27,12 @@ class TestCallRecordCreateView(TestCase):
                 status.HTTP_405_METHOD_NOT_ALLOWED
             )
 
-    @mock.patch('call_records.views.CallRecordSerializer')
-    def test_post_invalid_data_returns_bad_request(self, mocked_serializer):
-        mocked_serializer.return_value = mock.Mock(
-            is_valid=mock.Mock(side_effect=exceptions.ValidationError)
-        )
+    @mock.patch('call_records.views.CallEndSerializer')
+    @mock.patch('call_records.views.CallStartSerializer')
+    def test_post_invalid_record_type_returns_bad_request(self, s_start, s_end):
+        # asserts no serializer initialized
+        self.assertFalse(s_start.called)
+        self.assertFalse(s_end.called)
         request = self.factory.post(self.url, {})
         response = self.view(request)
         self.assertEqual(
@@ -39,29 +40,68 @@ class TestCallRecordCreateView(TestCase):
             status.HTTP_400_BAD_REQUEST
         )
 
-    @mock.patch('call_records.views.CallRecordSerializer')
-    def test_save_error_return_api_exception(self, mocked_serializer):
+    @mock.patch('call_records.views.CallStartSerializer')
+    def test_post_start_invalid_data_returns_bad_request(self, mocked_serializer):
+        mocked_serializer.return_value = mock.Mock(
+            is_valid=mock.Mock(side_effect=exceptions.ValidationError)
+        )
+        request = self.factory.post(self.url, {'record_type': 'start'})
+        response = self.view(request)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+
+    @mock.patch('call_records.views.CallEndSerializer')
+    def test_post_end_invalid_data_returns_bad_request(self, mocked_serializer):
+        mocked_serializer.return_value = mock.Mock(
+            is_valid=mock.Mock(side_effect=exceptions.ValidationError)
+        )
+        request = self.factory.post(self.url, {'record_type': 'end'})
+        response = self.view(request)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+
+    @mock.patch('call_records.views.CallStartSerializer')
+    def test_start_error_return_api_exception(self, mocked_serializer):
         save_mock = mock.Mock(side_effect = exceptions.APIException)
         mocked_serializer.return_value = mock.Mock(
             is_valid=mock.Mock(return_value=True),
             save=save_mock
         )
-        request = self.factory.post(self.url, {})
+        request = self.factory.post(self.url, {'record_type': 'start'})
         response = self.view(request)
         self.assertEqual(
             response.status_code,
             status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-        save_mock.assert_called_once()
+        self.assertTrue(save_mock.called)
 
-    @mock.patch('call_records.views.CallRecordSerializer')
-    def test_post_valid_data_return_saved_data(self, mocked_serializer):
+    @mock.patch('call_records.views.CallEndSerializer')
+    def test_end_error_return_api_exception(self, mocked_serializer):
+        save_mock = mock.Mock(side_effect = exceptions.APIException)
+        mocked_serializer.return_value = mock.Mock(
+            is_valid=mock.Mock(return_value=True),
+            save=save_mock
+        )
+        request = self.factory.post(self.url, {'record_type': 'end'})
+        response = self.view(request)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+        self.assertTrue(save_mock.called)
+
+    @mock.patch('call_records.views.CallStartSerializer')
+    def test_start_valid_data_return_saved_data(self, mocked_serializer):
         save_mock = mock.Mock(return_value={'call': 'data'})
         mocked_serializer.return_value = mock.Mock(
             is_valid=mock.Mock(return_value=True),
             save=save_mock
         )
-        request = self.factory.post(self.url, {})
+        request = self.factory.post(self.url, {'record_type': 'start'})
         response = self.view(request)
         self.assertEqual(
             response.status_code,
@@ -70,7 +110,25 @@ class TestCallRecordCreateView(TestCase):
         self.assertEqual(
             response.data, {'call': 'data'}
         )
-        save_mock.assert_called_once()
+        self.assertTrue(save_mock.called)
+
+    @mock.patch('call_records.views.CallEndSerializer')
+    def test_end_valid_data_return_saved_data(self, mocked_serializer):
+        save_mock = mock.Mock(return_value={'call': 'data'})
+        mocked_serializer.return_value = mock.Mock(
+            is_valid=mock.Mock(return_value=True),
+            save=save_mock
+        )
+        request = self.factory.post(self.url, {'record_type': 'end'})
+        response = self.view(request)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED
+        )
+        self.assertEqual(
+            response.data, {'call': 'data'}
+        )
+        self.assertTrue(save_mock.called)
 
 
 class TestBillRetrieve(TestCase):
