@@ -28,21 +28,36 @@ class Call(models.Model):
         '''
         return bool(self.started_at) and bool(self.ended_at)
 
+    def set_price(self):
+        '''Set's the call price when completed.
+        '''
+        if self.is_completed:
+            call_price = CallPrice(
+                started_at=self.started_at,
+                ended_at=self.ended_at
+            )
+            self.price = call_price.calculate()
+
+    @property
+    def period(self):
+        if self.is_completed:
+            return self.ended_at.date().replace(day=1)
+
+    @property
+    def duration(self):
+        '''Return duration of a call in a human format.
+        '''
+        if self.is_completed:
+            delta = (self.ended_at - self.started_at)
+            hours, minutes, seconds = str(delta).split(':')
+            return '{}h{}m{}s'.format(hours, minutes, seconds)
+
 
 class NotCompletedCall(Call):
     '''
     A call proxy model class for not completed calls.
     '''
     objects = NotCompletedCallManager()
-
-    def set_price(self):
-        '''Set's the call price when completed.
-        '''
-        call_price = CallPrice(
-            started_at=self.started_at,
-            ended_at=self.ended_at
-        )
-        self.price = call_price.calculate()
 
     class Meta:
         proxy = True
@@ -53,20 +68,5 @@ class CompletedCall(Call):
     A call proxy model class for completed calls.
     '''
     objects = CompletedCallManager()
-
-    @property
-    def period(self):
-        return self.ended_at.date().replace(day=1)
-
-    @property
-    def duration(self):
-        '''Return duration of a call in a human format.
-        '''
-        total_seconds = (self.ended_at - self.started_at).total_seconds()
-        hours = int(total_seconds // 60 // 60)
-        minutes = int(total_seconds % hours // 60)
-        seconds = int(total_seconds % 60)
-        return '{}h{}m{}s'.format(hours, minutes, seconds)
-
     class Meta:
         proxy = True
