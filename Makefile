@@ -13,8 +13,11 @@ static: _db
 superuser: _db
 	@docker-compose run web python manage.py createsuperuser
 
-run: migrate static
-	@docker-compose up
+run: test migrate static
+	@docker-compose up -d
+
+stop:
+	@docker-compose stop
 
 run-dev: _db
 	@docker-compose run --service-ports -e DEBUG=1 web python manage.py runserver 0:8000
