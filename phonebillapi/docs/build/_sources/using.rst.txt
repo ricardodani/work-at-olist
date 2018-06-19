@@ -18,7 +18,8 @@ The api
   - Method: GET
   - GET Params args: source, period
 
-* Get bill Endpoint:i
+* Post record Endpoint:
+
   - URL: http://ec2-54-202-87-225.us-west-2.compute.amazonaws.com/call-records/póst-record/
   - Method: POST
   - Post data args: type_record, call_id, source, destination, timestamp
