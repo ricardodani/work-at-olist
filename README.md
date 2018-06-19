@@ -5,6 +5,7 @@
 1. Python 3.6
 2. Docker
 3. Docker-compose
+4. Make
 
 ## Installing and Running
 
