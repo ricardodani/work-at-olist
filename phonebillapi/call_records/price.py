@@ -1,3 +1,4 @@
+from django.utils import timezone
 from datetime import datetime, time, timedelta
 from decimal import Decimal
 
@@ -35,7 +36,7 @@ class CallPrice(object):
             raise CallPriceInvalidInputError
         if started_at > ended_at:
             raise CallPriceStartGtEndError
-        if ended_at > datetime.now():
+        if ended_at > timezone.now():
             raise CallPriceEndInFutureError
         self.started_at, self.ended_at = started_at, ended_at
 

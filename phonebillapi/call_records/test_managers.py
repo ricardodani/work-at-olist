@@ -1,8 +1,9 @@
 import pytz
 from unittest import mock
+from decimal import Decimal
 from datetime import datetime
 from django.test import TestCase
-from call_records.models import Call, NotCompletedCall #, CompletedCall
+from call_records.models import Call, NotCompletedCall, CompletedCall
 from call_records import exceptions
 from call_records.price import (
     CallPriceInvalidInputError #, CallPriceStartGtEndError,
@@ -10,7 +11,7 @@ from call_records.price import (
 )
 
 
-class TestCallManagers(TestCase):
+class TestNotCompletedCallManagers(TestCase):
 
     def setUp(self):
         self.completed_call_1 = Call.objects.create(
@@ -76,8 +77,77 @@ class TestCallManagers(TestCase):
         self.assertTrue(mocked_calculate.called)
 
     def test_complete_call(self):
-        pass
+        not_completed_call = NotCompletedCall.objects.complete(
+            call_id=self.not_completed_call_2.call_id,
+            ended_at=datetime(2000, 1, 3, 1, 1, 1, tzinfo=pytz.UTC)
+        )
+        self.assertEqual(
+            not_completed_call.call_id,
+            CompletedCall.objects.get(
+                call_id=not_completed_call.call_id
+            ).call_id
+        )
+
+
+class TestCompletedCallManager(TestCase):
+
+    def setUp(self):
+        Call.objects.bulk_create([
+            Call(
+                call_id=1,
+                started_at=datetime(2000, 1, 1, 1, 10, 1, tzinfo=pytz.UTC),
+                ended_at=datetime(2000, 1, 1, 1, 20, 1, tzinfo=pytz.UTC),
+                source='21999002211',
+                destination='31888776655',
+                price=Decimal('10.0')
+            ),
+            Call(
+                call_id=2,
+                started_at=datetime(2000, 1, 1, 1, 10, 1, tzinfo=pytz.UTC),
+                ended_at=datetime(2000, 1, 1, 1, 20, 1, tzinfo=pytz.UTC),
+                source='21999002211',
+                destination='31888776655',
+                price=Decimal('10.0')
+            ),
+            Call(
+                call_id=3,
+                started_at=datetime(2000, 1, 1, 1, 10, 1, tzinfo=pytz.UTC),
+                ended_at=datetime(2000, 1, 1, 1, 20, 1, tzinfo=pytz.UTC),
+                source='31999002211',
+                destination='31888776655',
+                price=Decimal('10.0')
+            ),
+            Call(
+                call_id=4,
+                started_at=datetime(2000, 1, 1, 1, 10, 1, tzinfo=pytz.UTC),
+                source='21999002211',
+                destination='31888776655',
+            ),
+        ])
+
+    def test_get_queryset(self):
+        calls = CompletedCall.objects.all()
+        self.assertEqual(calls.count(), 3)
+
+    def test_get_bill_queryset_bill_not_found(self):
+        self.assertRaises(
+            exceptions.BillNotFoundError,
+            CompletedCall.objects.get_bill_queryset,
+            source='21999002211',
+            period=datetime(2000, 1, 5, 0, 0, 0, tzinfo=pytz.UTC)
+        )
+        self.assertRaises(
+            exceptions.BillNotFoundError,
+            CompletedCall.objects.get_bill_queryset,
+            source='00999999911',
+            period=datetime(2000, 1, 1, 0, 0, 0, tzinfo=pytz.UTC)
+        )
 
     def test_get_bill_queryset(self):
-        pass
-
+        self.assertEqual(
+            CompletedCall.objects.get_bill_queryset(
+                source='21999002211',
+                period=datetime(2000, 1, 1, 0, 0, tzinfo=pytz.UTC)
+            ).count(),
+            2
+        )

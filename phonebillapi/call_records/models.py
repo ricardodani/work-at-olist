@@ -58,7 +58,6 @@ class NotCompletedCall(Call):
     A call proxy model class for not completed calls.
     '''
     objects = NotCompletedCallManager()
-
     class Meta:
         proxy = True
 
