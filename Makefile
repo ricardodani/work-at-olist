@@ -20,7 +20,10 @@ run-dev: _db
 	@docker-compose run --service-ports -e DEBUG=1 web python manage.py runserver 0:8000
 
 test:
-	@docker-compose run web python manage.py test
+	@docker-compose run web python manage.py test call_records
+
+test-coverage:
+	@docker-compose run web coverage run --source='.' manage.py test call_records && docker-compose run web coverage report
 
 shell: _db
 	@docker-compose run web python manage.py shell
