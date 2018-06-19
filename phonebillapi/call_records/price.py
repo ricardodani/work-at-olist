@@ -95,7 +95,7 @@ class CallPrice(object):
     def calculate(self):
         '''Calculate price recursively.
 
-        :return: reuturn calculated price
+        :return: return calculated price
         :rtype: Decimal
         '''
         if self.started_at == self.ended_at:
