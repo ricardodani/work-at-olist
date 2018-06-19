@@ -1,5 +1,5 @@
 import pytz
-from unittest import mock
+import mock
 from decimal import Decimal
 from datetime import datetime
 from django.test import TestCase

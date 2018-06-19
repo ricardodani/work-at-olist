@@ -1,4 +1,4 @@
-from unittest import mock
+import mock
 from datetime import datetime
 from django.test import TestCase
 from call_records.serializers import CallStartSerializer, CallEndSerializer
