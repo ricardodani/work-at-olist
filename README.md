@@ -1,5 +1,29 @@
 # Work at Olist
 
+## Pre-requisites
+
+1. Python 3.6
+2. Docker
+3. Docker-compose
+
+## Installing and Running
+
+To build the images:
+
+`make build`
+
+The, migrate, copy statics and run:
+
+`make run`
+
+For development enviroment:
+
+`make run-dev`
+
+For more info, see the docs at phonebillapi/docs folder.
+
+## Original README
+
 [Olist](https://olist.com/) is a company that offers an integration platform
 for sellers and marketplaces allowing them to sell their products across
 multiple channels.
@@ -27,7 +51,7 @@ Hints:
   specification.
 
 
-## How to participate
+### How to participate
 
 1. Make a fork of this repository on Github. If you can't create a
    public fork of this project, make a private repository
@@ -42,7 +66,7 @@ Hints:
    * Link to the project in a the deployed host service.
 
 
-## Specification
+### Specification
 
 You should implement a Python application that receives call detail records
 and calculates monthly bills for a given telephone number.
@@ -57,7 +81,7 @@ This Python application must provide a HTTP REST API to attend the
 requirements.
 
 
-### 1. Receive telephone call detail records
+#### 1. Receive telephone call detail records
 
 There are two call detailed record types: **Call Start Record** and **Call
 End Record**. To get all information of a telephone call you should use the
@@ -80,7 +104,7 @@ The phone number format is *AAXXXXXXXXX*, where *AA* is the area code and
 digits.
 
 
-#### Examples
+##### Examples
 
 1. Call Start Record
 
@@ -107,7 +131,7 @@ digits.
 ```
 
 
-### 2. Get telephone bill
+#### 2. Get telephone bill
 
 To get a telephone bill we need two information: the subscriber telephone
 number (required); the reference period (month/year) (optional). If the
@@ -130,7 +154,7 @@ Each telephone bill call record has the fields:
 * call price: e.g. R$ 3,96
 
 
-### 3. Pricing rules
+#### 3. Pricing rules
 
 The call price depends on fixed charges, call duration and the time of
 the day that the call was made. There are two tariff times:
@@ -149,7 +173,7 @@ It's important to notice that the price rules can change from time to
 time, but an already calculated call price can not change.
 
 
-#### Examples
+##### Examples
 
 1. For a call started at 21:57:13 and finished at 22:10:56 we have:
 
@@ -160,7 +184,7 @@ time, but an already calculated call price can not change.
    * Total: R$ 0,18 + R$ 0,36 = R$ 0,54
 
 
-### 4. Sample data
+#### 4. Sample data
 Insert the following calls to your app after it is deployed to a working environment (eg. Heroku). This sample data will be used in your evaluation, so do this as the last step before submitting the project.
 
 These calls are between the numbers 99988526423 (source) and 9993468278 (destination).
@@ -174,7 +198,7 @@ These calls are between the numbers 99988526423 (source) and 9993468278 (destina
 * call_id: 77, started at 2018-02-28T21:57:13Z and ended at 2018-03-01T22:10:56Z.
 
 
-## Project Requirements:
+### Project Requirements:
 
 * Provide a working environment with your project (eg. Heroku)
 * Use Python >= 3.5
@@ -190,7 +214,7 @@ These calls are between the numbers 99988526423 (source) and 9993468278 (destina
 * Variables, code and strings must be all in English.
 
 
-## Recommendations
+### Recommendations
 
 * Write tests!
 * Practice the [12 Factor-App](http://12factor.net) concepts;
