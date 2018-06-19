@@ -21,21 +21,21 @@ class Call(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def _date_range(self):
+        return (self.started_at, self.ended_at)
+
     @property
     def is_completed(self):
         '''Return if the `Call` instance is complete, in other words, has
         start and end records.
         '''
-        return bool(self.started_at) and bool(self.ended_at)
+        return all(self._date_range())
 
     def set_price(self):
         '''Set's the call price when completed.
         '''
         if self.is_completed:
-            call_price = CallPrice(
-                started_at=self.started_at,
-                ended_at=self.ended_at
-            )
+            call_price = CallPrice(*self._date_range())
             self.price = call_price.calculate()
 
     @property
