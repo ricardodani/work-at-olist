@@ -24,7 +24,7 @@ SECRET_KEY = 'g=-d&2+9b3*syxl_u86%1=chd+(vu+$d#ygp^yx=a4l#rx-p!v'
 
 DEBUG = os.getenv('DEBUG', False)
 
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = ['localhost', 'ec2-54-202-87-225.us-west-2.compute.amazonaws.com:8000']
 
 INSTALLED_APPS = [
     'call_records',
