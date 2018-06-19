@@ -29,6 +29,15 @@ class CallPrice(object):
     MIN_PRICE = Decimal('0.09')
 
     def __init__(self, started_at, ended_at):
+        '''
+        Initializes a `CallPrice`.
+
+        :param started_at: Start datetime
+        :type started_at: timezoned datetime
+
+        :param ended_at: End datetime
+        :type ended_at: timezoned datetime
+        '''
         invalid_types = not (
             isinstance(started_at, datetime) and isinstance(ended_at, datetime)
         )
@@ -85,6 +94,9 @@ class CallPrice(object):
 
     def calculate(self):
         '''Calculate price recursively.
+
+        :return: reuturn calculated price
+        :rtype: Decimal
         '''
         if self.started_at == self.ended_at:
             return Decimal('0.00')
