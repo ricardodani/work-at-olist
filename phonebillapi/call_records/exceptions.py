@@ -27,7 +27,9 @@ class CalculatePriceError(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
     def __init__(self, calculate_err, *args, **kwargs):
-        self.detail = ': '.join(self.default_detail, str(calculate_err))
+        self.detail = ': '.join((
+            self.default_detail, str(calculate_err.message)
+        ))
         super().__init__(*args, **kwargs)
 
 
