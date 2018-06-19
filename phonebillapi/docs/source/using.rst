@@ -20,6 +20,6 @@ The api
 
 * Post record Endpoint:
 
-  - URL: http://ec2-54-202-87-225.us-west-2.compute.amazonaws.com/call-records/póst-record/
+  - URL: http://ec2-54-202-87-225.us-west-2.compute.amazonaws.com/call-records/post-record/
   - Method: POST
   - Post data args: type_record, call_id, source, destination, timestamp
