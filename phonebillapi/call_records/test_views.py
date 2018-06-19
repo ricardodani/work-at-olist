@@ -31,10 +31,10 @@ class TestCallRecordCreateView(TestCase):
     @mock.patch('call_records.views.CallStartSerializer')
     def test_post_invalid_record_type_returns_bad_request(self, s_start, s_end):
         # asserts no serializer initialized
-        self.assertFalse(s_start.called)
-        self.assertFalse(s_end.called)
         request = self.factory.post(self.url, {})
         response = self.view(request)
+        self.assertFalse(s_start.called)
+        self.assertFalse(s_end.called)
         self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST
