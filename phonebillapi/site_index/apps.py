@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class CallRecordsConfig(AppConfig):
-    name = 'call_records'
+class SiteIndexConfig(AppConfig):
+    name = 'site_index'
