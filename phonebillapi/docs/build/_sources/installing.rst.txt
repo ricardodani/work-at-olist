@@ -6,6 +6,7 @@ Pre-requisites
 
 * Docker (tested on version 18.03.1-ce)
 * docker-compose (tested on version 1.12.0)
+* Make
 
 Install locally with docker
 ---------------------------

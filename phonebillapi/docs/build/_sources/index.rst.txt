@@ -10,7 +10,6 @@ Welcome to "PhoneBill API" Documentation! This software gives you a tested API t
    about
    installing
    using
-   deploying
    arquitecture
 
 
