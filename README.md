@@ -6,7 +6,7 @@ This project was deployed on a amazon AWS micro instance through Docker.
 
 Project index: http://ec2-54-202-87-225.us-west-2.compute.amazonaws.com/
 
-Documentation: http://ec2-54-202-87-225.us-west-2.compute.amazonaws.com/docs
+Documentation: http://ec2-54-202-87-225.us-west-2.compute.amazonaws.com/docs/
 
 
 ## Pre-requisites
