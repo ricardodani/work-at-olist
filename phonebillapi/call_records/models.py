@@ -7,7 +7,7 @@ from call_records.managers import (
 
 class Call(models.Model):
     '''
-    A call record metadada.
+    A call record metadata.
     '''
 
     call_id = models.AutoField(primary_key=True)
